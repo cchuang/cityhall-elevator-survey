@@ -18,8 +18,7 @@ clean:
 	#@$(MSBUILD) $(SOLUTION) /t:clean /v:q /p:Configuration=Release /maxcpucount:6 
 	
 test:
-	$(TARGET) "D:\tpc.elev\video\chunks\20160106_00000000.mp4"
-#	$(TARGET) 
+	$(TARGET) "D:\cityhall-elevator-survey\video\chunks\1451444819_00000000.mp4" 
 
 .PHONY: all debug show clean
 
