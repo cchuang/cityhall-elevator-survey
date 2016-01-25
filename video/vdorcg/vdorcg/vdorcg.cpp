@@ -30,6 +30,9 @@ void InitElevStat(ElevSetStat&	elevs_stat) {
 	elevs_stat.SetElev(Point(520, 99), 14, "NC4");
 	elevs_stat.SetElev(Point(645, 99), 14, "NC5");
 	elevs_stat.SetElev(Point(844, 101), 14, "NC6");
+	elevs_stat.SetElevGrp(Point(4, 100), 14, "NC1-3");
+	elevs_stat.SetElevGrp(Point(448, 100), 14, "NC4-5");
+	elevs_stat.SetElevGrp(Point(771, 103), 14, "NC6~");
 }
 
 bool IsPanX1(Mat frame) {

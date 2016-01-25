@@ -6,17 +6,10 @@
 using namespace std;
 using namespace cv;	
 
-/*
-class Coordinate {
- public:
-	int x, y;
-	Coordinate(int x, int y); 
-	Coordinate() {}; 
-};
-*/
-
 const Point trans_up(30, 7);
 const Point trans_down(30, 14);
+const Point trans_ii_up(31, 8);
+const Point trans_ii_down(51, 11);
 const Point trans_stop(45, 10);
 const Point trans_door(61, 11);
 const Point trans_car(87, 7);
@@ -36,6 +29,7 @@ public:
 	bool	door_is_opening;
 	bool	car_is_here;
 	int		floor;
+	int		type; // type I is for general car (elevator). type II is for car group.
 
 private:
 	Point	anchor;
@@ -58,6 +52,7 @@ public:
 	string	name;
 	double	msec;
 	int		wh_floor;
+	int		type; // type I is for general car (elevator). type II is for car group.
 
 private:
 	Point	anchor;

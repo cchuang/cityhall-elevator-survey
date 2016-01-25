@@ -16,16 +16,24 @@ int	FloorStat::SetAnchor(int x, int y) {
 int	FloorStat::RecogStat(Mat	frame) {
 	// It's CV_8UC3 
 	Vec3b p;
-	p = frame.at<Vec3b>(anchor + trans_up);
-	req_up = (p[0] < 100 && p[1] > 235 && p[2] < 100);
-	p = frame.at<Vec3b>(anchor + trans_down);
-	req_down = (p[0] < 100 && p[1] > 235 && p[2] < 100);
-	p = frame.at<Vec3b>(anchor + trans_stop);
-	req_stop = (p[0] < 100 && p[1] > 235 && p[2] < 100);
-	p = frame.at<Vec3b>(anchor + trans_door);
-	door_is_opening = (p[0] > 235 && p[1] > 235 && p[2] > 235);
-	p = frame.at<Vec3b>(anchor + trans_car);
-	car_is_here = (p[0] > 220 && p[1] < 50 && p[2] < 50);
+	req_up = req_down = req_stop = door_is_opening = car_is_here = false;
+	if (type == 1) {
+		p = frame.at<Vec3b>(anchor + trans_up);
+		req_up = (p[0] < 100 && p[1] > 235 && p[2] < 100);
+		p = frame.at<Vec3b>(anchor + trans_down);
+		req_down = (p[0] < 100 && p[1] > 235 && p[2] < 100);
+		p = frame.at<Vec3b>(anchor + trans_stop);
+		req_stop = (p[0] < 100 && p[1] > 235 && p[2] < 100);
+		p = frame.at<Vec3b>(anchor + trans_door);
+		door_is_opening = (p[0] > 235 && p[1] > 235 && p[2] > 235);
+		p = frame.at<Vec3b>(anchor + trans_car);
+		car_is_here = (p[0] > 220 && p[1] < 50 && p[2] < 50);
+	} else if (type == 2) {
+		p = frame.at<Vec3b>(anchor + trans_ii_up);
+		req_up = (p[0] < 100 && p[1] > 235 && p[2] < 100);
+		p = frame.at<Vec3b>(anchor + trans_ii_down);
+		req_down = (p[0] < 100 && p[1] > 235 && p[2] < 100);
+	}
 
 	return 0;
 }
@@ -58,6 +66,7 @@ int ElevStat::SetNumFloors(int n) {
 				new FloorStat(anchor.x + trans_floor_box.x, 
 					anchor.y + trans_floor_box.y + (int)(FLOOR_HEIGHT * (float)i)));
 		floors_stat.back()->floor = floor;
+		floors_stat.back()->type = type;
 
 		floor --;
 		// we don't have floor zero (or ground floor). 
