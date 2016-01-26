@@ -17,7 +17,7 @@ int	FloorStat::RecogStat(Mat	frame) {
 	// It's CV_8UC3 
 	Vec3b p;
 	req_up = req_down = req_stop = door_is_opening = car_is_here = false;
-	if (type == 1) {
+	if (type == TYPE_GENEARL_CAR) {
 		p = frame.at<Vec3b>(anchor + trans_up);
 		req_up = (p[0] < 100 && p[1] > 235 && p[2] < 100);
 		p = frame.at<Vec3b>(anchor + trans_down);
@@ -28,11 +28,13 @@ int	FloorStat::RecogStat(Mat	frame) {
 		door_is_opening = (p[0] > 235 && p[1] > 235 && p[2] > 235);
 		p = frame.at<Vec3b>(anchor + trans_car);
 		car_is_here = (p[0] > 220 && p[1] < 50 && p[2] < 50);
-	} else if (type == 2) {
+	} else if (type == TYPE_CAR_GROUP) {
 		p = frame.at<Vec3b>(anchor + trans_ii_up);
 		req_up = (p[0] < 100 && p[1] > 235 && p[2] < 100);
+		//cout << floor << ":" << p << ":";
 		p = frame.at<Vec3b>(anchor + trans_ii_down);
 		req_down = (p[0] < 100 && p[1] > 235 && p[2] < 100);
+		//cout << p << ":" << req_up << ":" << req_down << endl;
 	}
 
 	return 0;
@@ -92,13 +94,26 @@ int	ElevStat::RecogStat(Mat frame, double dmsec){
 	return 0;
 }
 
+int ElevStat::SetType(int in_type) {
+	type = in_type;
+	for (int i=0; i < (int)floors_stat.size(); i ++) {
+		floors_stat.at(i)->type = in_type;
+	}
+	return 0;
+}
+
 int	ElevStat::Show(){
 	for (int i=0; i < (int) floors_stat.size(); i ++) {
-		cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",REQUP," << floors_stat.at(i)->req_up << endl;
-		cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",REQDOWN," << floors_stat.at(i)->req_down << endl;
-		cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",REQSTOP," << floors_stat.at(i)->req_stop << endl;
-		cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",DOORISOPEN," << floors_stat.at(i)->door_is_opening << endl;
-		cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",CARISHERE," << floors_stat.at(i)->car_is_here << endl;
+		if ((type == TYPE_GENEARL_CAR) || (type == TYPE_CAR_GROUP)) {
+			cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",REQUP," << floors_stat.at(i)->req_up << endl;
+			cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",REQDOWN," << floors_stat.at(i)->req_down << endl;
+		}
+
+		if (type == TYPE_GENEARL_CAR) {
+			cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",REQSTOP," << floors_stat.at(i)->req_stop << endl;
+			cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",DOORISOPEN," << floors_stat.at(i)->door_is_opening << endl;
+			cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",CARISHERE," << floors_stat.at(i)->car_is_here << endl;
+		}
 	}
 	return 0;
 }

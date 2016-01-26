@@ -8,12 +8,15 @@ using namespace cv;
 
 const Point trans_up(30, 7);
 const Point trans_down(30, 14);
-const Point trans_ii_up(31, 8);
-const Point trans_ii_down(51, 11);
+const Point trans_ii_up(51, 11);
+const Point trans_ii_down(31, 8);
 const Point trans_stop(45, 10);
 const Point trans_door(61, 11);
 const Point trans_car(87, 7);
 #define	FLOOR_HEIGHT	(18.85)
+#define TYPE_GENEARL_CAR	1
+#define TYPE_CAR_GROUP		2
+
 class FloorStat {
 	// height ~ 264/14 ~ 18.85
 public: 
@@ -47,8 +50,10 @@ public:
 
 	int SetAnchor(int x, int y);
 	int	SetNumFloors(int n);
+	int SetType(int	in_type);
 	int	RecogStat(Mat	frame, double dmsec);
 	int	Show();
+
 	string	name;
 	double	msec;
 	int		wh_floor;
