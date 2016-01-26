@@ -1,6 +1,7 @@
 #!/bin/
 # author: cchuang.tw@gmail.com
 # description: functions of analyzis the efficiency of cityhall's elevators
+# setwd("D:/cityhall-elevator-survey");source("analysis_func.R")
 
 ########################################
 # Functions
