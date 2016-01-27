@@ -3,17 +3,21 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
+#include <tesseract/baseapi.h>
+
+using namespace std;
+using namespace cv;
 
 FloorStat::FloorStat(int x, int y) {
 	SetAnchor(x, y);
 }
 
 int	FloorStat::SetAnchor(int x, int y) {
-	anchor = Point(x, y);
+	anchor = cv::Point(x, y);
 	return 0;
 }
 
-int	FloorStat::RecogStat(Mat	frame) {
+int	FloorStat::RecogStat(cv::Mat	frame) {
 	// It's CV_8UC3 
 	Vec3b p;
 	req_up = req_down = req_stop = door_is_opening = car_is_here = false;
@@ -41,11 +45,11 @@ int	FloorStat::RecogStat(Mat	frame) {
 }
 
 ElevStat::ElevStat(int x, int y, int num_floors) {
-	ElevStat(Point(x, y), num_floors);
+	ElevStat(cv::Point(x, y), num_floors);
 }
 
 
-ElevStat::ElevStat(Point ac, int num_floors) {
+ElevStat::ElevStat(cv::Point ac, int num_floors) {
 	SetAnchor(ac.x, ac.y);
 	SetNumFloors(num_floors);
 }
@@ -57,7 +61,7 @@ ElevStat::~ElevStat() {
 }
 
 int ElevStat::SetAnchor(int x, int y) {
-	anchor = Point(x, y);
+	anchor = cv::Point(x, y);
 	return 0;
 }
 
@@ -85,7 +89,7 @@ int ElevStat::SetNumFloors(int n) {
 	return 0;
 }
 
-int	ElevStat::RecogStat(Mat frame, double dmsec){
+int	ElevStat::RecogStat(cv::Mat frame, double dmsec){
 	msec = dmsec;
 	wh_floor = RecogElevFloor(frame);
 	for (int i=0; i < (int)floors_stat.size(); i ++) {
@@ -118,14 +122,14 @@ int	ElevStat::Show(){
 	return 0;
 }
 
-int	ElevStat::RecogElevFloor(Mat frame) {
+int	ElevStat::RecogElevFloor(cv::Mat frame) {
 	// By Teeseract console app. nasty implementation
 	// TODO: use library directly
 	//FILE *ocr;
 
-	Point floor_box = anchor + trans_floor_text;
-	Mat fl_txt = frame(Range(floor_box.y, floor_box.y + 23), Range(floor_box.x, floor_box.x + 24)).clone();
-	String	tmp_name ("tmp" + name + ".bmp"); 
+	cv::Point floor_box = anchor + trans_floor_text;
+	cv::Mat fl_txt = frame(Range(floor_box.y, floor_box.y + 23), Range(floor_box.x, floor_box.x + 24)).clone();
+	std::string	tmp_name ("tmp" + name + ".bmp"); 
 	//char* result = (char *)malloc(32);
 	vector<uchar> buf;
 

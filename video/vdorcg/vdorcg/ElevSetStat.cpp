@@ -3,21 +3,23 @@
 #include <vector>
 #include <opencv2/core.hpp>
 
-int ElevSetStat::SetElev(Point anchor, int num_floors, string name) {
+using namespace std;
+
+int ElevSetStat::SetElev(cv::Point anchor, int num_floors, std::string name) {
 	elevs_stat.push_back(new ElevStat(anchor, num_floors));
 	elevs_stat.back()->name = name;
 	elevs_stat.back()->SetType(TYPE_GENEARL_CAR);
 	return 0;
 }
 
-int	ElevSetStat::SetElevGrp(Point anchor, int num_floors, string name) {
+int	ElevSetStat::SetElevGrp(cv::Point anchor, int num_floors, std::string name) {
 	elevgs_stat.push_back(new ElevStat(anchor, num_floors));
 	elevgs_stat.back()->name = name;
 	elevgs_stat.back()->SetType(TYPE_CAR_GROUP);
 	return 0;
 }
 
-int ElevSetStat::RecogStat(Mat frame, double msec) {
+int ElevSetStat::RecogStat(cv::Mat frame, double msec) {
 	for (int i = 0; i < (int) elevs_stat.size(); i ++) {
 		elevs_stat.at(i)->RecogStat(frame, msec);
 		elevs_stat.at(i)->Show();

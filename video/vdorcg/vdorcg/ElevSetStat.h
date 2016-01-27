@@ -10,12 +10,12 @@ public:
 	ElevSetStat();
 	~ElevSetStat();
 
-	int	SetElev(Point anchor, int num_floors, string name);
-	int	SetElevGrp(Point anchor, int num_floors, string name);
-	int RecogStat(Mat frame, double msec);
+	int	SetElev(cv::Point anchor, int num_floors, std::string name);
+	int	SetElevGrp(cv::Point anchor, int num_floors, std::string name);
+	int RecogStat(cv::Mat frame, double msec);
 
 private:
-	vector<ElevStat*>  elevs_stat;
-	vector<ElevStat*>  elevgs_stat;
+	std::vector<ElevStat*>  elevs_stat;
+	std::vector<ElevStat*>  elevgs_stat;
 };
 
