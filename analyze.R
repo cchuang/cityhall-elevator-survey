@@ -10,6 +10,7 @@ library(ggplot2)
 library(MASS)
 library(magrittr)
 library(reshape2)
+source("analysis_func.R")
 
 #cl <- makeCluster(detectCores())
 #registerDoParallel(cl)
@@ -22,6 +23,7 @@ cpt.data <- data.frame()
 #target.time2 <- 0
 target.time1 <- 1452052326
 target.time2 <- 86400
+#target.time2 <- 14400
 target.time <- as.POSIXct(target.time1 + target.time2, origin="1970-01-01")
 
 # Load data
@@ -132,10 +134,13 @@ if (TRUE) {
 	p <- ggplot(subset(wt.data3, Event == "REQUP" & Fl==1), aes(Duration, color=CarGrp)) 
 	print(p + stat_ecdf() + labs(x="Waiting Time (in seconds)", title="CDF of Waiting Time (Up)"))
 	ggsave(sprintf("ecdf_uB_%s.png", format(target.time, "%F_%H%M")), width=out.width, height=out.height)
+
 	p <- ggplot(subset(wt.data3, Event == "REQDOWN" & (Fl==12 | Fl==11)), aes(Duration, color=CarGrp)) 
-	print(p + stat_ecdf() + facet_grid(Fl ~ .) + labs(x="Waiting Time (in seconds)", title="CDF of Waiting Time (Down)"))
+	p <- p + stat_ecdf() + facet_grid(Fl ~ .) + labs(x="Waiting Time (in seconds)", title="CDF of Waiting Time (Down)")
+	print(p)
 	ggsave(sprintf("ecdf_dB_%s.png", format(target.time, "%F_%H%M")), width=out.width, height=out.height)
 
+	# multiple call
 	hf.data <- subset(wt.data3, (Fl==11 | Fl==12))
 	res <- ddply(subset(hf.data, Event=="REQDOWN"), .(CarGrp),  CountMultiSummoning, full.data=hf.data, event="REQDOWN")
 	print(res)
@@ -144,19 +149,35 @@ if (TRUE) {
 	res <- ddply(subset(hf.data, Event=="REQUP"), .(CarGrp),  CountMultiSummoning, full.data=hf.data, event="REQUP")
 	print(res)
 
+	# model fiting
 	fit <- ddply(wt.data3, .(CarGrp, Fl, Event), 
 		  function(x){
-			  fit <- fitdistr(x$Duration, "exponential")
-			  return(data.frame(est=fit$estimate, sd=fit$sd, n=fit$n))
+			  #fit <- fitdistr(x$Duration, "exponential")
+			  fit <- fitdistr(x$Duration, "lognormal")
+			  p.value <- ks.test(x$Duration, "plnorm", fit$estimate)$p.value
+			  return(data.frame(meanlog=fit$estimate[1], sdlog=fit$estimate[2], 
+								meanlog.sd=fit$sd[1], sdlog.sd=fit$sd[2], 
+								n=fit$n, p.value=p.value))
 		  }) %>% subset(n>3)
 	fit %<>% within({
-		lower <- est - 1.95 * sd
-		upper <- est + 1.95 * sd
+		lower <- meanlog - 1.95 * sdlog
+		upper <- meanlog + 1.95 * sdlog
 	})
-	p <- ggplot(fit, aes(Fl, est, color=CarGrp, label=sprintf("%.2f", 1.0/est))) + 
+
+	p <- ggplot(fit, aes(Fl, meanlog, color=CarGrp, label=sprintf("%.2f", exp(meanlog)))) + 
 		 geom_errorbar(aes(ymin=lower, ymax=upper))
 	print(p + facet_grid(Event ~ .) + 
-		  geom_label() + annotate("text", label="Numbers in the labels are means of the fitted model, which is 1/lambda", x = 5, y = 0.01, size = 5, color="red") + 
-		  labs(x="Floor", y=expression(lambda), title="Exponential Fit by ML")) 
+		  geom_label() + annotate("text", label="Numbers in the labels are the medians of the fitted model", x = 5, y = 0.005, size = 5, color="red") + 
+		  labs(x="Floor", y=expression(mu), title="Log-normal Distribution Fitted by ML")) 
+	ggsave(sprintf("fit_%s.png", format(target.time, "%F_%H%M")), width=out.width, height=out.height)
+
+	fit.est.12 <- subset(fit, Fl==12)[,c("meanlog", "sdlog")]
+	p <- ggplot(subset(wt.data3, Event == "REQDOWN" & Fl==12), aes(Duration, color=CarGrp)) 
+	p <- p + stat_ecdf() + labs(x="Waiting Time (in seconds)", title="CDF of Waiting Time (Down)")
+	p <- p + 
+		stat_function(fun = plnorm, args = fit.est.12[1,], color = "blue") + 
+		stat_function(fun = plnorm, args = fit.est.12[2,], color = "blue") 
+	print(p)
+	ggsave(sprintf("ecdf_dB_%s.png", format(target.time, "%F_%H%M")), width=out.width, height=out.height)
 }
 

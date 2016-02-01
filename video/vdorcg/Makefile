@@ -2,6 +2,7 @@
 MSBUILD="/cygdrive/c/Program Files (x86)/MSBuild/14.0/Bin/MSBuild.exe"
 SOLUTION="vdorcg.sln"
 TARGET="Debug/vdorcg.exe"
+#TARGET="Release/vdorcg.exe"
 PLATFORM="x86"
 
 all: 

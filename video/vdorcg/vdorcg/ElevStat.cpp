@@ -1,9 +1,11 @@
+
 #include "ElevStat.h"
 #include <stdio.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include <tesseract/baseapi.h>
+#include <tesseract/genericvector.h>
 
 using namespace std;
 using namespace cv;
@@ -52,6 +54,15 @@ ElevStat::ElevStat(int x, int y, int num_floors) {
 ElevStat::ElevStat(cv::Point ac, int num_floors) {
 	SetAnchor(ac.x, ac.y);
 	SetNumFloors(num_floors);
+	if (g_ocr == NULL) {
+		GenericVector<STRING>	*vars_vec = new GenericVector<STRING>();
+		GenericVector<STRING>	*vars_values = new GenericVector<STRING>();
+		vars_vec->push_back("tessedit_char_whitelist");
+		vars_values->push_back("0123456789B");
+		g_ocr = new tesseract::TessBaseAPI();
+		g_ocr->Init(NULL, "eng", tesseract::OEM_DEFAULT, NULL, NULL, vars_vec, vars_values, false);
+		//std::cout << g_ocr->Version() << endl;
+	} 
 }
 
 ElevStat::~ElevStat() {
@@ -91,7 +102,14 @@ int ElevStat::SetNumFloors(int n) {
 
 int	ElevStat::RecogStat(cv::Mat frame, double dmsec){
 	msec = dmsec;
-	wh_floor = RecogElevFloor(frame);
+	if (type == TYPE_GENEARL_CAR) {
+		wh_floor = RecogElevFloor(frame);
+		weight_percent = RecogWeight(frame);
+		cout<<name << ":" << wh_floor << ":" << weight_percent << endl;
+	} else {
+		wh_floor = 0;
+		weight_percent = 0;
+	}
 	for (int i=0; i < (int)floors_stat.size(); i ++) {
 		floors_stat.at(i)->RecogStat(frame);
 	}
@@ -122,31 +140,60 @@ int	ElevStat::Show(){
 	return 0;
 }
 
-int	ElevStat::RecogElevFloor(cv::Mat frame) {
-	// By Teeseract console app. nasty implementation
-	// TODO: use library directly
-	//FILE *ocr;
+char *ElevStat::RecogRect(Mat frame, Rect roi, bool debug) {
+	cv::Mat subframe = frame(roi).clone();
+	cv::Mat resize_frame, laplace, sharp;
 
-	cv::Point floor_box = anchor + trans_floor_text;
-	cv::Mat fl_txt = frame(Range(floor_box.y, floor_box.y + 23), Range(floor_box.x, floor_box.x + 24)).clone();
-	std::string	tmp_name ("tmp" + name + ".bmp"); 
-	//char* result = (char *)malloc(32);
-	vector<uchar> buf;
+	cvtColor(subframe, subframe, COLOR_BGRA2GRAY);
+	cv::resize(subframe, resize_frame, Size(), 3, 3, cv::INTER_CUBIC);
+	cv::Laplacian(resize_frame, laplace, CV_8UC1);
+	sharp = resize_frame - laplace - laplace - laplace;
+	//sharp = resize_frame;
+	//laplace = sharp;
+	//cv::medianBlur(laplace, sharp, 5);
 
-	//cvtColor(fl_txt, fl_txt, COLOR_BGRA2GRAY);
-	//cout << fl_txt.channels() << " " << fl_txt.depth() << endl;
-	//imwrite(tmp_name, fl_txt);
-	//imshow("Floor text", fl_txt);
-	//waitKey(10);
-
-	/*
-	if ((ocr = _popen("C:\\Tesseract-OCR\\tesseract.exe D:\\noname.jpg stdout", "rb")) == NULL) {
-		return -1;
+	g_ocr->SetImage((uchar*)sharp.data, sharp.size().width, sharp.size().height, sharp.channels(), sharp.step1());
+	if (debug) {
+		std::string	tmp_name ("tmp" + name + ".bmp"); 
+		imwrite(tmp_name, sharp);
+		//imshow("Weight", sharp);
+		//waitKey(0);
 	}
-	*/
-	//fread(result, 1, 32, ocr);
-	//printf("%s", result);
-	//_pclose(ocr);
-	return 0;
+
+	g_ocr->Recognize(0);
+	char* ocr_out = g_ocr->GetUTF8Text();
+	return ocr_out;
+}
+
+int	ElevStat::RecogElevFloor(cv::Mat frame) {
+	int	floor = -99;
+	Rect roi(anchor + trans_floor_text_box, size_floor_text_box);
+	const char* ocr_out = RecogRect(frame, roi, false);
+	// ocr_out: formatted as <char>0A0A. e.g. B2 is 0x42320A0A
+	if (strlen(ocr_out) > 0) {
+		if (ocr_out[0] == 'B') {
+			floor = -std::stoi(ocr_out + 1);
+		} else {
+			floor = std::stoi(ocr_out);
+		}
+	} 
+	//cout << floor << endl;
+	delete ocr_out;
+
+	return floor;
+}
+
+int	ElevStat::RecogWeight(cv::Mat frame) {
+	int	weight = -99;
+	Rect roi(anchor + trans_weight_box, size_weight_box);
+
+	const char* ocr_out = RecogRect(frame, roi, false);
+	//cout << name << ":len " << strlen(ocr_out) << ":" << ocr_out << endl;
+	if (strlen(ocr_out) > 0) {
+		weight = std::stoi(ocr_out);
+	} 
+	delete ocr_out;
+
+	return weight;
 }
 

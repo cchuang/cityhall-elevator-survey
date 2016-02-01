@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 #include <iostream>
+#include <tesseract/baseapi.h>
 #include <opencv2/core.hpp>
-
 
 const cv::Point trans_up(30, 7);
 const cv::Point trans_down(30, 14);
@@ -37,7 +37,10 @@ private:
 };
 
 const cv::Point trans_floor_box(0, 259);
-const cv::Point trans_floor_text(75, 92);
+const cv::Point trans_floor_text_box(77, 92);
+const cv::Size size_floor_text_box(22, 21);
+const cv::Point trans_weight_box(102, 104);
+const cv::Size size_weight_box(12, 11);
 #define	FLOOR_START_AT	12
 class ElevStat {
 public:
@@ -55,11 +58,15 @@ public:
 	std::string	name;
 	double	msec;
 	int		wh_floor;
+	int		weight_percent;
 	int		type; // type I is for general car (elevator). type II is for car group.
 
 private:
 	cv::Point	anchor;
 	std::vector<FloorStat*>  floors_stat;
 	int	RecogElevFloor(cv::Mat frame);
+	int RecogWeight(cv::Mat frame);
+	char *RecogRect(cv::Mat frame, cv::Rect roi, bool debug);
 };
 
+static tesseract::TessBaseAPI *g_ocr;

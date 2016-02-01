@@ -25,9 +25,9 @@ void ReadOneFrameByN(int n, VideoCapture cap, Mat& frame) {
 
 void InitElevStat(ElevSetStat&	elevs_stat) {
 	elevs_stat.SetElev(Point(76, 97), 14, "NC1");
-	elevs_stat.SetElev(Point(199, 100), 14, "NC2");
+	elevs_stat.SetElev(Point(199, 101), 14, "NC2");
 	elevs_stat.SetElev(Point(323, 101), 14, "NC3");
-	elevs_stat.SetElev(Point(520, 99), 14, "NC4");
+	elevs_stat.SetElev(Point(520, 100), 14, "NC4");
 	elevs_stat.SetElev(Point(645, 99), 14, "NC5");
 	elevs_stat.SetElev(Point(844, 101), 14, "NC6");
 	elevs_stat.SetElevGrp(Point(4, 100), 14, "NC1-3");
@@ -103,6 +103,11 @@ int DetectEvents(VideoCapture cap) {
 		}
 		ReadOneFrameByN(6, cap, curr_frame);
 		num_frames ++;
+#if 1
+		if (num_frames > 12) {
+			break;
+		}
+#endif
 	}
 
 	return 0;
@@ -113,6 +118,7 @@ int main(int argc, const char** argv) {
 
 	if (argc < 2) {
 		cout << "Usage: " << argv[0] << " <target file>" << endl;
+		cout << "\tOpenCV: " << cv::getBuildInformation().c_str() << endl;
 		return -1;
 	}
 
@@ -128,3 +134,4 @@ int main(int argc, const char** argv) {
 
 	return DetectEvents(cap);
 }
+

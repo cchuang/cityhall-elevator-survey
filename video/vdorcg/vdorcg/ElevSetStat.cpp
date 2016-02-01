@@ -22,11 +22,11 @@ int	ElevSetStat::SetElevGrp(cv::Point anchor, int num_floors, std::string name) 
 int ElevSetStat::RecogStat(cv::Mat frame, double msec) {
 	for (int i = 0; i < (int) elevs_stat.size(); i ++) {
 		elevs_stat.at(i)->RecogStat(frame, msec);
-		elevs_stat.at(i)->Show();
+		//elevs_stat.at(i)->Show();
 	}
 	for (int i = 0; i < (int) elevgs_stat.size(); i ++) {
 		elevgs_stat.at(i)->RecogStat(frame, msec);
-		elevgs_stat.at(i)->Show();
+		//elevgs_stat.at(i)->Show();
 	}
 	return 0;
 }
