@@ -150,6 +150,55 @@ int	ElevStat::Show(){
 	return 0;
 }
 
+int	ElevStat::ShowDiff(ElevStat *other) {
+	int	result = 0;
+	if (type == TYPE_GENERAL_CAR) {
+		if ((wh_floor != other->wh_floor) || (up_down != other->up_down)) {
+			result ++;
+			cout << name << "," << msec << "," << wh_floor << ",LOCDIR," << up_down << endl;
+		}
+		if ((wh_floor != other->wh_floor) || (weight_percent != other->weight_percent)) {
+			result ++;
+			cout << name << "," << msec << "," << wh_floor << ",WEIGHT," << weight_percent << endl;
+		}
+	}
+	for (int i=0; i < (int) floors_stat.size(); i ++) {
+		FloorStat *me, *he;
+		me = GetFS(i);
+		he = other->GetFS(i);
+		if ((type == TYPE_GENERAL_CAR) || (type == TYPE_CAR_GROUP)) {
+			if (me->req_up != he->req_up) {
+				result ++;
+				cout << name << "," << msec << "," << me->floor << ",REQUP," << me->req_up << endl;
+			}
+			if (me->req_down != he->req_down) {
+				result ++;
+				cout << name << "," << msec << "," << me->floor << ",REQDOWN," << me->req_down << endl;
+			}
+		}
+
+		if (type == TYPE_GENERAL_CAR) {
+			if (me->req_stop != he->req_stop) {
+				result ++;
+				cout << name << "," << msec << "," << me->floor << ",REQSTOP,"    << me->req_stop << endl;
+			}
+			if (me->door_is_opening != he->door_is_opening) {
+				result ++;
+				cout << name << "," << msec << "," << me->floor << ",DOORISOPEN," << me->door_is_opening << endl;
+			}
+			if (me->car_is_here != he->car_is_here) {
+				result ++;
+				cout << name << "," << msec << "," << me->floor << ",CARISHERE,"  << me->car_is_here << endl;
+			}
+		}
+	}
+	return result;
+}
+
+FloorStat *ElevStat::GetFS(int i) {
+	return floors_stat.at(i);
+}
+
 char *ElevStat::RecogRectText(Mat frame, Rect roi, bool debug) {
 	cv::Mat subframe = frame(roi).clone();
 	cv::Mat resize_frame, laplace, sharp;
@@ -178,7 +227,7 @@ char *ElevStat::RecogRectText(Mat frame, Rect roi, bool debug) {
 int	ElevStat::RecogElevFloor(cv::Mat frame) {
 	int	floor = -99;
 	Rect roi(anchor + trans_floor_text_box, size_floor_text_box);
-	const char* ocr_out = RecogRectText(frame, roi, false);
+	const char* ocr_out = RecogRectText(frame, roi, true);
 	// ocr_out: formatted as <char>0A0A. e.g. B2 is 0x42320A0A
 	if (strlen(ocr_out) > 0) {
 		if (ocr_out[0] == 'B') {

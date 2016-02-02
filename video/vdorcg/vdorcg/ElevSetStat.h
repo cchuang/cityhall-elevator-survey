@@ -14,6 +14,9 @@ public:
 	int	SetElevGrp(cv::Point anchor, int num_floors, std::string name);
 	int RecogStat(cv::Mat frame, double msec);
 	int	Show();
+	int	ShowDiff(ElevSetStat *other);
+	ElevStat *GetES(int idx); 
+	ElevStat *GetEGS(int idx); 
 
 private:
 	std::vector<ElevStat*>  elevs_stat;

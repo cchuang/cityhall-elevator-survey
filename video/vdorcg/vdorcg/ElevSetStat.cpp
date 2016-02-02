@@ -29,6 +29,24 @@ int ElevSetStat::Show() {
 	return 0;
 }
 
+int ElevSetStat::ShowDiff(ElevSetStat *other) {
+	int	result = 0;
+	for (int i = 0; i < (int) elevs_stat.size(); i ++) {
+		result += GetES(i)->ShowDiff(other->GetES(i));
+	}
+	for (int i = 0; i < (int) elevgs_stat.size(); i ++) {
+		result += GetEGS(i)->ShowDiff(other->GetEGS(i));
+	}
+	return result;
+}
+
+ElevStat *ElevSetStat::GetES(int idx) {
+	return elevs_stat.at(idx);
+}
+
+ElevStat *ElevSetStat::GetEGS(int idx) {
+	return elevgs_stat.at(idx);
+}
 
 int ElevSetStat::RecogStat(cv::Mat frame, double msec) {
 	int	result;

@@ -65,6 +65,8 @@ public:
 	int SetType(int	in_type);
 	int	RecogStat(cv::Mat	frame, double dmsec);
 	int	Show();
+	int	ShowDiff(ElevStat *);
+	FloorStat *GetFS(int i);
 
 	std::string	name;
 	double	msec;

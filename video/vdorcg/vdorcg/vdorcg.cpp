@@ -23,16 +23,19 @@ void ReadOneFrameByN(int n, VideoCapture cap, Mat& frame) {
 	}
 }
 
-void InitElevStat(ElevSetStat&	elevs_stat) {
-	elevs_stat.SetElev(Point(76, 97), 14, "NC1");
-	elevs_stat.SetElev(Point(199, 101), 14, "NC2");
-	elevs_stat.SetElev(Point(323, 101), 14, "NC3");
-	elevs_stat.SetElev(Point(520, 100), 14, "NC4");
-	elevs_stat.SetElev(Point(645, 99), 14, "NC5");
-	elevs_stat.SetElev(Point(844, 101), 14, "NC6");
-	elevs_stat.SetElevGrp(Point(4, 100), 14, "NC1-3");
-	elevs_stat.SetElevGrp(Point(448, 100), 14, "NC4-5");
-	elevs_stat.SetElevGrp(Point(771, 103), 14, "NC6~");
+#define SIZE_ELEVS_STAT 2
+void InitElevStat(ElevSetStat *elevs_stat) {
+	for (int i = 0; i < SIZE_ELEVS_STAT; i ++) {
+		elevs_stat[i].SetElev(Point(76, 97), 14, "NC1");
+		elevs_stat[i].SetElev(Point(199, 101), 14, "NC2");
+		elevs_stat[i].SetElev(Point(323, 101), 14, "NC3");
+		elevs_stat[i].SetElev(Point(520, 100), 14, "NC4");
+		elevs_stat[i].SetElev(Point(645, 99), 14, "NC5");
+		elevs_stat[i].SetElev(Point(844, 101), 14, "NC6");
+		elevs_stat[i].SetElevGrp(Point(4, 100), 14, "NC1-3");
+		elevs_stat[i].SetElevGrp(Point(448, 100), 14, "NC4-5");
+		elevs_stat[i].SetElevGrp(Point(771, 103), 14, "NC6~");
+	}
 }
 
 bool IsPanX1(Mat frame) {
@@ -47,9 +50,12 @@ bool IsPanX1(Mat frame) {
 int DetectEvents(VideoCapture cap) {
 	int	num_frames = 0;
 	Mat prev_frame, curr_frame;
-	ElevSetStat	elevs_stat;
+	ElevSetStat	*elevs_stat = new ElevSetStat [SIZE_ELEVS_STAT];
+	ElevSetStat	*curr_es, *prev_es, *tmp_es;
 
 	InitElevStat(elevs_stat);
+	curr_es = elevs_stat;
+	prev_es = elevs_stat + 1;
 
 	//TODO: As long as the original file is split into small pieces (each one
 	//is in 2 hours), we are facing a problem that it's possible we got an event
@@ -89,15 +95,27 @@ int DetectEvents(VideoCapture cap) {
 
 			if (is_event) {
 				int	result;
-				result = elevs_stat.RecogStat(curr_frame, cap.get(CAP_PROP_POS_MSEC));
+				result = curr_es->RecogStat(curr_frame, cap.get(CAP_PROP_POS_MSEC));
 				if (result == 0) {
-					elevs_stat.Show();
+					//curr_es->Show();
+					int	num_lines = curr_es->ShowDiff(prev_es);
+					if (num_lines > 0) {
+						imshow("Frame", curr_frame);
+						waitKey(0);
+					}
+					// swap curr_es and prev_es
+					tmp_es = curr_es;
+					curr_es = prev_es;
+					prev_es = tmp_es;
 				}
 #if 0
 				imshow("Difference", diff);
 				waitKey(0);
 #endif
 			}
+		} else if (num_frames == 0) {
+			// Assumption: the first frame must be on the panel we are interested in. 
+			prev_es->RecogStat(curr_frame, cap.get(CAP_PROP_POS_MSEC));
 		}
 
 		if (IsPanX1(curr_frame)) {
@@ -105,7 +123,7 @@ int DetectEvents(VideoCapture cap) {
 		}
 		ReadOneFrameByN(6, cap, curr_frame);
 		num_frames ++;
-#if 1
+#if 0
 		if (num_frames > 12) {
 			break;
 		}
