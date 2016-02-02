@@ -46,7 +46,13 @@ const cv::Size size_floor_text_box(22, 21);
 // A text box which shows the loading of this elevator in percentage
 const cv::Point trans_weight_box(102, 104);
 const cv::Size size_weight_box(12, 11);
+// A box which shows the elevator is going up or down. 
+const cv::Point trans_updown_box(53, 92);
+const cv::Size size_updown_box(22, 21);
 #define	FLOOR_START_AT	12
+#define	GOING_UP	1
+#define	GOING_DOWN	-1
+#define	GOING_STOP	0
 class ElevStat {
 public:
 	ElevStat(int x, int y, int num_floors);
@@ -62,9 +68,10 @@ public:
 
 	std::string	name;
 	double	msec;
+	int		type; // type I is for general car (elevator). type II is for car group.
 	int		wh_floor;
 	int		weight_percent;
-	int		type; // type I is for general car (elevator). type II is for car group.
+	int		up_down; 
 
 private:
 	cv::Point	anchor;
@@ -72,7 +79,9 @@ private:
 	int	RecogElevFloor(cv::Mat frame);
 	int RecogWeight(cv::Mat frame);
 	int VerifyName(cv::Mat frame);
-	char *RecogRect(cv::Mat frame, cv::Rect roi, bool debug);
+	void DetectDirection(cv::Mat frame);
+	char *RecogRectText(cv::Mat frame, cv::Rect roi, bool debug);
 };
 
 static tesseract::TessBaseAPI *g_ocr;
+
