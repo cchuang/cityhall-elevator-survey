@@ -13,6 +13,7 @@ public:
 	int	SetElev(cv::Point anchor, int num_floors, std::string name);
 	int	SetElevGrp(cv::Point anchor, int num_floors, std::string name);
 	int RecogStat(cv::Mat frame, double msec);
+	int	Show();
 
 private:
 	std::vector<ElevStat*>  elevs_stat;

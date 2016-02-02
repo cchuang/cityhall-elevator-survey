@@ -85,12 +85,14 @@ int DetectEvents(VideoCapture cap) {
 			// in the most noisy frames, we got the ratio around 2. 
 			// in the REAL event frames, it's about 20s or more. 
 			// that's why we choose 10 as the threshold. 
-			if ((num_nonzeros != 0) && (avg_px_ch > 10)){
-				is_event = true;
-			} 
+			is_event = ((num_nonzeros != 0) && (avg_px_ch > 10));
 
 			if (is_event) {
-				elevs_stat.RecogStat(curr_frame, cap.get(CAP_PROP_POS_MSEC));
+				int	result;
+				result = elevs_stat.RecogStat(curr_frame, cap.get(CAP_PROP_POS_MSEC));
+				if (result == 0) {
+					elevs_stat.Show();
+				}
 #if 0
 				imshow("Difference", diff);
 				waitKey(0);

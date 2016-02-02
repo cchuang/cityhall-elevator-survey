@@ -12,7 +12,7 @@ const cv::Point trans_stop(45, 10);
 const cv::Point trans_door(61, 11);
 const cv::Point trans_car(87, 7);
 #define	FLOOR_HEIGHT	(18.85)
-#define TYPE_GENEARL_CAR	1
+#define TYPE_GENERAL_CAR	1
 #define TYPE_CAR_GROUP		2
 
 class FloorStat {
@@ -37,8 +37,13 @@ private:
 };
 
 const cv::Point trans_floor_box(0, 259);
+// A text box which shows the elevator's name
+const cv::Point trans_name_text_box(6, 0);
+const cv::Size size_name_text_box(103, 17);
+// A text box which shows which floor is in digit
 const cv::Point trans_floor_text_box(77, 92);
 const cv::Size size_floor_text_box(22, 21);
+// A text box which shows the loading of this elevator in percentage
 const cv::Point trans_weight_box(102, 104);
 const cv::Size size_weight_box(12, 11);
 #define	FLOOR_START_AT	12
@@ -66,6 +71,7 @@ private:
 	std::vector<FloorStat*>  floors_stat;
 	int	RecogElevFloor(cv::Mat frame);
 	int RecogWeight(cv::Mat frame);
+	int VerifyName(cv::Mat frame);
 	char *RecogRect(cv::Mat frame, cv::Rect roi, bool debug);
 };
 

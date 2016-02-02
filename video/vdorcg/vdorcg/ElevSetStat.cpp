@@ -8,7 +8,7 @@ using namespace std;
 int ElevSetStat::SetElev(cv::Point anchor, int num_floors, std::string name) {
 	elevs_stat.push_back(new ElevStat(anchor, num_floors));
 	elevs_stat.back()->name = name;
-	elevs_stat.back()->SetType(TYPE_GENEARL_CAR);
+	elevs_stat.back()->SetType(TYPE_GENERAL_CAR);
 	return 0;
 }
 
@@ -19,13 +19,31 @@ int	ElevSetStat::SetElevGrp(cv::Point anchor, int num_floors, std::string name) 
 	return 0;
 }
 
-int ElevSetStat::RecogStat(cv::Mat frame, double msec) {
+int ElevSetStat::Show() {
 	for (int i = 0; i < (int) elevs_stat.size(); i ++) {
-		elevs_stat.at(i)->RecogStat(frame, msec);
+		elevs_stat.at(i)->Show();
+	}
+	for (int i = 0; i < (int) elevgs_stat.size(); i ++) {
+		elevgs_stat.at(i)->Show();
+	}
+	return 0;
+}
+
+
+int ElevSetStat::RecogStat(cv::Mat frame, double msec) {
+	int	result;
+	for (int i = 0; i < (int) elevs_stat.size(); i ++) {
+		result = elevs_stat.at(i)->RecogStat(frame, msec);
+		if (result != 0) {
+			return result;
+		}
 		//elevs_stat.at(i)->Show();
 	}
 	for (int i = 0; i < (int) elevgs_stat.size(); i ++) {
-		elevgs_stat.at(i)->RecogStat(frame, msec);
+		result = elevgs_stat.at(i)->RecogStat(frame, msec);
+		if (result != 0) {
+			return result;
+		}
 		//elevgs_stat.at(i)->Show();
 	}
 	return 0;

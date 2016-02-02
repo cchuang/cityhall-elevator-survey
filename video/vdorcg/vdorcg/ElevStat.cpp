@@ -23,7 +23,7 @@ int	FloorStat::RecogStat(cv::Mat	frame) {
 	// It's CV_8UC3 
 	Vec3b p;
 	req_up = req_down = req_stop = door_is_opening = car_is_here = false;
-	if (type == TYPE_GENEARL_CAR) {
+	if (type == TYPE_GENERAL_CAR) {
 		p = frame.at<Vec3b>(anchor + trans_up);
 		req_up = (p[0] < 100 && p[1] > 235 && p[2] < 100);
 		p = frame.at<Vec3b>(anchor + trans_down);
@@ -58,7 +58,7 @@ ElevStat::ElevStat(cv::Point ac, int num_floors) {
 		GenericVector<STRING>	*vars_vec = new GenericVector<STRING>();
 		GenericVector<STRING>	*vars_values = new GenericVector<STRING>();
 		vars_vec->push_back("tessedit_char_whitelist");
-		vars_values->push_back("0123456789B");
+		vars_values->push_back("0123456789BCNS-");
 		g_ocr = new tesseract::TessBaseAPI();
 		g_ocr->Init(NULL, "eng", tesseract::OEM_DEFAULT, NULL, NULL, vars_vec, vars_values, false);
 		//std::cout << g_ocr->Version() << endl;
@@ -102,10 +102,15 @@ int ElevStat::SetNumFloors(int n) {
 
 int	ElevStat::RecogStat(cv::Mat frame, double dmsec){
 	msec = dmsec;
-	if (type == TYPE_GENEARL_CAR) {
+	int	verify_result;
+	if (type == TYPE_GENERAL_CAR) {
+		verify_result = VerifyName(frame);
+		if (verify_result != 0) {
+			return verify_result;
+		}
 		wh_floor = RecogElevFloor(frame);
 		weight_percent = RecogWeight(frame);
-		cout<<name << ":" << wh_floor << ":" << weight_percent << endl;
+		//cout<<name << ":" << wh_floor << ":" << weight_percent << endl;
 	} else {
 		wh_floor = 0;
 		weight_percent = 0;
@@ -126,12 +131,12 @@ int ElevStat::SetType(int in_type) {
 
 int	ElevStat::Show(){
 	for (int i=0; i < (int) floors_stat.size(); i ++) {
-		if ((type == TYPE_GENEARL_CAR) || (type == TYPE_CAR_GROUP)) {
+		if ((type == TYPE_GENERAL_CAR) || (type == TYPE_CAR_GROUP)) {
 			cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",REQUP," << floors_stat.at(i)->req_up << endl;
 			cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",REQDOWN," << floors_stat.at(i)->req_down << endl;
 		}
 
-		if (type == TYPE_GENEARL_CAR) {
+		if (type == TYPE_GENERAL_CAR) {
 			cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",REQSTOP," << floors_stat.at(i)->req_stop << endl;
 			cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",DOORISOPEN," << floors_stat.at(i)->door_is_opening << endl;
 			cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",CARISHERE," << floors_stat.at(i)->car_is_here << endl;
@@ -195,5 +200,21 @@ int	ElevStat::RecogWeight(cv::Mat frame) {
 	delete ocr_out;
 
 	return weight;
+}
+
+int ElevStat::VerifyName(cv::Mat frame) {
+	Rect roi(anchor + trans_name_text_box, size_name_text_box);
+
+	const char* ocr_out = RecogRect(frame, roi, true);
+	std::string ocr_result(ocr_out);
+	delete ocr_out;
+
+	if ((ocr_result.compare(0, 2, "N0") == 0) || 
+			(ocr_result.compare(0, 2, "S0") == 0)) {
+		ocr_result[1] = 'C';
+	}	
+
+	//cout << name << ":" << name.size() << ":" << ocr_result.compare(0, name.size(), name) << endl;
+	return ocr_result.compare(0, name.size(), name);
 }
 
