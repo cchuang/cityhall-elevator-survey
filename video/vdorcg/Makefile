@@ -19,7 +19,8 @@ clean:
 	@$(MSBUILD) $(SOLUTION) /t:clean /v:q /p:Configuration=Release /p:Platform=$(PLATFORM) /maxcpucount:6 
 	
 test:
-	$(TARGET) "D:\cityhall-elevator-survey\video\chunks\1451444819_00000000.mp4" 
+	$(TARGET) input_file_list.txt
+	#$(TARGET) "D:\cityhall-elevator-survey\video\chunks\1451444819_00000000.mp4" 
 	#$(TARGET) "D:\cityhall-elevator-survey\video\chunks\1451444819_00043200.mp4" 
 
 .PHONY: all debug show clean

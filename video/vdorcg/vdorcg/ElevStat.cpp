@@ -1,6 +1,7 @@
 
 #include "ElevStat.h"
 #include <stdio.h>
+#include <iomanip>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
@@ -61,6 +62,8 @@ ElevStat::ElevStat(cv::Point ac, int num_floors) {
 		vars_values->push_back("0123456789BCNS-");
 		g_ocr = new tesseract::TessBaseAPI();
 		g_ocr->Init(NULL, "eng", tesseract::OEM_DEFAULT, NULL, NULL, vars_vec, vars_values, false);
+		delete vars_vec;
+		delete vars_values;
 		//std::cout << g_ocr->Version() << endl;
 	} 
 }
@@ -240,15 +243,15 @@ char *ElevStat::RecogRectText(Mat frame, Rect roi, int ratio, bool debug) {
 int	ElevStat::RecogElevFloor(cv::Mat frame) {
 	int	floor = -99;
 	Rect roi(anchor + trans_floor_text_box, size_floor_text_box);
-	const char* ocr_out = RecogRectText(frame, roi, 4, true);
+	const char* ocr_out = RecogRectText(frame, roi, 4, false);
 	// ocr_out: formatted as <char>0A0A. e.g. B2 is 0x42320A0A
 	string ocr_string (ocr_out);
 	std::replace(ocr_string.begin(), ocr_string.end(), '\n', ' ') ;
 	//cout << name << ": real text " << ocr_string << endl;
 	if (strlen(ocr_out) > 0) {
-		if (ocr_out[0] == 'B') {
+		if (ocr_out[0] == 'B' && ocr_out[1] <= '9' && ocr_out[1] >= '0') {
 			floor = -std::stoi(ocr_out + 1);
-		} else {
+		} else if (ocr_out[0] <= '9' && ocr_out[0] >= '0') {
 			floor = std::stoi(ocr_out);
 		}
 	} 
@@ -265,7 +268,9 @@ int	ElevStat::RecogWeight(cv::Mat frame) {
 	const char* ocr_out = RecogRectText(frame, roi, 3, false);
 	//cout << name << ":len " << strlen(ocr_out) << ":" << ocr_out << endl;
 	if (strlen(ocr_out) > 0) {
-		weight = std::stoi(ocr_out);
+		if (ocr_out[0] <= '9' && ocr_out[0] >= '0') {
+			weight = std::stoi(ocr_out);
+		} 
 	} 
 	delete ocr_out;
 
@@ -378,6 +383,7 @@ void ElevStat::DetectService(cv::Mat frame) {
 	cout << name << ":" << "Service detection" << endl;
 #endif
 
+	cout << setprecision(10);
 	if (DtctSgnfctColor(subframe) == 2) {
 		stop_service = true;
 	} else {
