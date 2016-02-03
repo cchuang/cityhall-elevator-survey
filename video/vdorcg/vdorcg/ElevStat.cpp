@@ -111,6 +111,8 @@ int	ElevStat::RecogStat(cv::Mat frame, double dmsec){
 		wh_floor = RecogElevFloor(frame);
 		weight_percent = RecogWeight(frame);
 		DetectDirection(frame);
+		DetectDoorOpen(frame);
+		DetectService(frame);
 		//cout<<name << ":" << wh_floor << ":" << weight_percent << endl;
 	} else {
 		wh_floor = 0;
@@ -134,6 +136,8 @@ int	ElevStat::Show(){
 	if (type == TYPE_GENERAL_CAR) {
 		cout << name << "," << msec << "," << wh_floor << ",LOCDIR," << up_down << endl;
 		cout << name << "," << msec << "," << wh_floor << ",WEIGHT," << weight_percent << endl;
+		cout << name << "," << msec << "," << wh_floor << ",REQOPEN," << req_open << endl;
+		cout << name << "," << msec << "," << wh_floor << ",STOPSERVICE," << stop_service << endl;
 	}
 	for (int i=0; i < (int) floors_stat.size(); i ++) {
 		if ((type == TYPE_GENERAL_CAR) || (type == TYPE_CAR_GROUP)) {
@@ -161,6 +165,14 @@ int	ElevStat::ShowDiff(ElevStat *other) {
 		if ((wh_floor != other->wh_floor) || (weight_percent != other->weight_percent)) {
 			result ++;
 			cout << name << "," << msec << "," << wh_floor << ",WEIGHT," << weight_percent << endl;
+		}
+		if ((wh_floor != other->wh_floor) || (req_open != other->req_open)) {
+			result ++;
+			cout << name << "," << msec << "," << wh_floor << ",REQOPEN," << req_open << endl;
+		}
+		if ((wh_floor != other->wh_floor) || (stop_service != other->stop_service)) {
+			result ++;
+			cout << name << "," << msec << "," << wh_floor << ",STOPSERVICE," << stop_service << endl;
 		}
 	}
 	for (int i=0; i < (int) floors_stat.size(); i ++) {
@@ -309,5 +321,67 @@ void ElevStat::DetectDirection(cv::Mat frame) {
 	imshow("detect", subframe);
 	waitKey(0);
 #endif
+}
+
+static int CompareDouble (const void * a, const void * b)
+{
+  return (int) ( *(double*)b - *(double*)a );
+}
+
+static int	DtctSgnfctColor(cv::Mat frame) {
+	Vec3d p;
+	double tmp[3] = {0, 0, 0};
+	double gap[2];
+	int	i;
+	Mat sum_row = Mat::zeros(1, frame.cols, CV_64FC3);
+	Mat sum = Mat::zeros(1, 1, CV_64FC3);
+
+	cv::reduce(frame, sum_row, 0, REDUCE_SUM, CV_64FC3);
+	cv::reduce(sum_row, sum, 1, REDUCE_SUM, CV_64FC3);
+	p = sum.at<Vec3d>(0, 0);
+
+	for (i = 0; i < 3; i ++) {
+		tmp[i] = p[i];
+	}
+	qsort(tmp, 3, sizeof(double), CompareDouble);
+	gap[0] = tmp[0] - tmp[1];
+	gap[1] = tmp[1] - tmp[2];
+	//cout << "\t" << p << "\t" << gap[0] << "\t" << gap[1] << endl;
+	// has significant gap, 20 is selected empirically. 
+	if (gap[0] > 20.0 * gap[1]) {
+		for (i = 0; i < 3; i ++) {
+			if (tmp[0] == p[i]) {
+				return i;
+			}
+		}
+	} 
+	return -1;
+}
+
+void ElevStat::DetectDoorOpen(cv::Mat frame) {
+	Rect roi(anchor + trans_open_box, size_open_box);
+	Mat subframe = frame(roi).clone();
+	if (DtctSgnfctColor(subframe) == 1) {
+		req_open = true;
+	} else {
+		req_open = false;
+	}
+}
+
+void ElevStat::DetectService(cv::Mat frame) {
+	Rect roi(anchor + trans_service_box, size_service_box);
+	Mat subframe = frame(roi).clone();
+
+#if 0
+	std::string	tmp_name ("tmp" + name + ".bmp"); 
+	imwrite(tmp_name, subframe);
+	cout << name << ":" << "Service detection" << endl;
+#endif
+
+	if (DtctSgnfctColor(subframe) == 2) {
+		stop_service = true;
+	} else {
+		stop_service = false;
+	}
 }
 

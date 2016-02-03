@@ -49,6 +49,12 @@ const cv::Size size_weight_box(12, 11);
 // A box which shows the elevator is going up or down. 
 const cv::Point trans_updown_box(53, 92);
 const cv::Size size_updown_box(22, 21);
+// A box which shows the OPEN button is pressed
+const cv::Point trans_open_box(50, 69);
+const cv::Size size_open_box(22, 21);
+// A box which shows the OPEN button is pressed
+const cv::Point trans_service_box(1, 91);
+const cv::Size size_service_box(22, 21);
 #define	FLOOR_START_AT	12
 #define	GOING_UP	1
 #define	GOING_DOWN	-1
@@ -74,6 +80,8 @@ public:
 	int		wh_floor;
 	int		weight_percent;
 	int		up_down; 
+	bool	req_open;
+	bool	stop_service;
 
 private:
 	cv::Point	anchor;
@@ -82,6 +90,8 @@ private:
 	int RecogWeight(cv::Mat frame);
 	int VerifyName(cv::Mat frame);
 	void DetectDirection(cv::Mat frame);
+	void DetectDoorOpen(cv::Mat frame);
+	void DetectService(cv::Mat frame);
 	char *RecogRectText(cv::Mat frame, cv::Rect roi, int ratio, bool debug);
 };
 

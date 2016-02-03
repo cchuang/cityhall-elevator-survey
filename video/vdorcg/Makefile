@@ -16,10 +16,11 @@ show:
 
 clean:
 	@$(MSBUILD) $(SOLUTION) /t:clean /v:q /p:Configuration=Debug /p:Platform=$(PLATFORM) /maxcpucount:6 
-	#@$(MSBUILD) $(SOLUTION) /t:clean /v:q /p:Configuration=Release /maxcpucount:6 
+	@$(MSBUILD) $(SOLUTION) /t:clean /v:q /p:Configuration=Release /p:Platform=$(PLATFORM) /maxcpucount:6 
 	
 test:
 	$(TARGET) "D:\cityhall-elevator-survey\video\chunks\1451444819_00000000.mp4" 
+	#$(TARGET) "D:\cityhall-elevator-survey\video\chunks\1451444819_00043200.mp4" 
 
 .PHONY: all debug show clean
 
