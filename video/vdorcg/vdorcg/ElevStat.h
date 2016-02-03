@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <tesseract/baseapi.h>
 #include <opencv2/core.hpp>
 
@@ -69,13 +70,13 @@ public:
 	int SetAnchor(int x, int y);
 	int	SetNumFloors(int n);
 	int SetType(int	in_type);
-	int	RecogStat(cv::Mat	frame, double dmsec);
+	int	RecogStat(cv::Mat	frame, time_t ts);
 	int	Show();
-	int	ShowDiff(ElevStat *);
+	int	ShowDiff(ElevStat *other, std::ostream &outfile);
 	FloorStat *GetFS(int i);
 
 	std::string	name;
-	double	msec;
+	time_t	ts;
 	int		type; // type I is for general car (elevator). type II is for car group.
 	int		wh_floor;
 	int		weight_percent;

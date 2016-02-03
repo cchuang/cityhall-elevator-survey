@@ -103,8 +103,8 @@ int ElevStat::SetNumFloors(int n) {
 	return 0;
 }
 
-int	ElevStat::RecogStat(cv::Mat frame, double dmsec){
-	msec = dmsec;
+int	ElevStat::RecogStat(cv::Mat frame, time_t ts){
+	ts = ts;
 	int	verify_result;
 	if (type == TYPE_GENERAL_CAR) {
 		verify_result = VerifyName(frame);
@@ -137,45 +137,45 @@ int ElevStat::SetType(int in_type) {
 
 int	ElevStat::Show(){
 	if (type == TYPE_GENERAL_CAR) {
-		cout << name << "," << msec << "," << wh_floor << ",LOCDIR," << up_down << endl;
-		cout << name << "," << msec << "," << wh_floor << ",WEIGHT," << weight_percent << endl;
-		cout << name << "," << msec << "," << wh_floor << ",REQOPEN," << req_open << endl;
-		cout << name << "," << msec << "," << wh_floor << ",STOPSERVICE," << stop_service << endl;
+		cout << name << "," << ts << "," << wh_floor << ",LOCDIR," << up_down << endl;
+		cout << name << "," << ts << "," << wh_floor << ",WEIGHT," << weight_percent << endl;
+		cout << name << "," << ts << "," << wh_floor << ",REQOPEN," << req_open << endl;
+		cout << name << "," << ts << "," << wh_floor << ",STOPSERVICE," << stop_service << endl;
 	}
 	for (int i=0; i < (int) floors_stat.size(); i ++) {
 		if ((type == TYPE_GENERAL_CAR) || (type == TYPE_CAR_GROUP)) {
-			cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",REQUP," << floors_stat.at(i)->req_up << endl;
-			cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",REQDOWN," << floors_stat.at(i)->req_down << endl;
+			cout << name << "," << ts << "," << floors_stat.at(i)->floor << ",REQUP," << floors_stat.at(i)->req_up << endl;
+			cout << name << "," << ts << "," << floors_stat.at(i)->floor << ",REQDOWN," << floors_stat.at(i)->req_down << endl;
 		}
 
 		if (type == TYPE_GENERAL_CAR) {
-			cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",REQSTOP," << floors_stat.at(i)->req_stop << endl;
-			cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",DOORISOPEN," << floors_stat.at(i)->door_is_opening << endl;
-			cout << name << "," << msec << "," << floors_stat.at(i)->floor << ",CARISHERE," << floors_stat.at(i)->car_is_here << endl;
+			cout << name << "," << ts << "," << floors_stat.at(i)->floor << ",REQSTOP," << floors_stat.at(i)->req_stop << endl;
+			cout << name << "," << ts << "," << floors_stat.at(i)->floor << ",DOORISOPEN," << floors_stat.at(i)->door_is_opening << endl;
+			cout << name << "," << ts << "," << floors_stat.at(i)->floor << ",CARISHERE," << floors_stat.at(i)->car_is_here << endl;
 		}
 	}
 	return 0;
 }
 
 // TODO: it's a very nasty implementation...
-int	ElevStat::ShowDiff(ElevStat *other) {
+int	ElevStat::ShowDiff(ElevStat *other, std::ostream &outfile) {
 	int	result = 0;
 	if (type == TYPE_GENERAL_CAR) {
 		if ((wh_floor != other->wh_floor) || (up_down != other->up_down)) {
 			result ++;
-			cout << name << "," << msec << "," << wh_floor << ",LOCDIR," << up_down << endl;
+			outfile << name << "," << ts << "," << wh_floor << ",LOCDIR," << up_down << endl;
 		}
 		if ((wh_floor != other->wh_floor) || (weight_percent != other->weight_percent)) {
 			result ++;
-			cout << name << "," << msec << "," << wh_floor << ",WEIGHT," << weight_percent << endl;
+			outfile << name << "," << ts << "," << wh_floor << ",WEIGHT," << weight_percent << endl;
 		}
 		if ((wh_floor != other->wh_floor) || (req_open != other->req_open)) {
 			result ++;
-			cout << name << "," << msec << "," << wh_floor << ",REQOPEN," << req_open << endl;
+			outfile << name << "," << ts << "," << wh_floor << ",REQOPEN," << req_open << endl;
 		}
 		if ((wh_floor != other->wh_floor) || (stop_service != other->stop_service)) {
 			result ++;
-			cout << name << "," << msec << "," << wh_floor << ",STOPSERVICE," << stop_service << endl;
+			outfile << name << "," << ts << "," << wh_floor << ",STOPSERVICE," << stop_service << endl;
 		}
 	}
 	for (int i=0; i < (int) floors_stat.size(); i ++) {
@@ -185,26 +185,26 @@ int	ElevStat::ShowDiff(ElevStat *other) {
 		if ((type == TYPE_GENERAL_CAR) || (type == TYPE_CAR_GROUP)) {
 			if (me->req_up != he->req_up) {
 				result ++;
-				cout << name << "," << msec << "," << me->floor << ",REQUP," << me->req_up << endl;
+				outfile << name << "," << ts << "," << me->floor << ",REQUP," << me->req_up << endl;
 			}
 			if (me->req_down != he->req_down) {
 				result ++;
-				cout << name << "," << msec << "," << me->floor << ",REQDOWN," << me->req_down << endl;
+				outfile << name << "," << ts << "," << me->floor << ",REQDOWN," << me->req_down << endl;
 			}
 		}
 
 		if (type == TYPE_GENERAL_CAR) {
 			if (me->req_stop != he->req_stop) {
 				result ++;
-				cout << name << "," << msec << "," << me->floor << ",REQSTOP,"    << me->req_stop << endl;
+				outfile << name << "," << ts << "," << me->floor << ",REQSTOP,"    << me->req_stop << endl;
 			}
 			if (me->door_is_opening != he->door_is_opening) {
 				result ++;
-				cout << name << "," << msec << "," << me->floor << ",DOORISOPEN," << me->door_is_opening << endl;
+				outfile << name << "," << ts << "," << me->floor << ",DOORISOPEN," << me->door_is_opening << endl;
 			}
 			if (me->car_is_here != he->car_is_here) {
 				result ++;
-				cout << name << "," << msec << "," << me->floor << ",CARISHERE,"  << me->car_is_here << endl;
+				outfile << name << "," << ts << "," << me->floor << ",CARISHERE,"  << me->car_is_here << endl;
 			}
 		}
 	}
@@ -280,7 +280,7 @@ int	ElevStat::RecogWeight(cv::Mat frame) {
 int ElevStat::VerifyName(cv::Mat frame) {
 	Rect roi(anchor + trans_name_text_box, size_name_text_box);
 
-	const char* ocr_out = RecogRectText(frame, roi, 3, true);
+	const char* ocr_out = RecogRectText(frame, roi, 3, false);
 	std::string ocr_result(ocr_out);
 	delete ocr_out;
 

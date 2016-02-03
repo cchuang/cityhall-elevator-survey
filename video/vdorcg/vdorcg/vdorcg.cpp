@@ -86,6 +86,9 @@ int DetectEvents(struct FileList &in_list) {
 	ElevSetStat	*elevs_stat = new ElevSetStat [SIZE_ELEVS_STAT];
 	ElevSetStat	*curr_es, *prev_es, *tmp_es;
 	VideoCapture	cap;
+	char curr_out_filename[80];
+	char new_out_filename[80];
+	std::ofstream	out_file("dummy.txt");
 
 	InitElevStat(elevs_stat);
 	curr_es = elevs_stat;
@@ -129,11 +132,20 @@ int DetectEvents(struct FileList &in_list) {
 
 			if (is_event) {
 				int	result;
-				result = curr_es->RecogStat(curr_frame, 
-						in_list.timestamp + cap.get(CAP_PROP_POS_MSEC)/1000);
+				time_t	curr_ts = in_list.timestamp + ((time_t) cap.get(CAP_PROP_POS_MSEC))/1000;
+				result = curr_es->RecogStat(curr_frame, curr_ts);
 				if (result == 0) {
 					//curr_es->Show();
-					int	num_lines = curr_es->ShowDiff(prev_es);
+					struct tm *curr_tm = std::gmtime(&curr_ts);
+					strftime(new_out_filename, 80, "out_%F.csv", curr_tm);
+					if (strcmp(new_out_filename, curr_out_filename) != 0) {
+						strcpy(curr_out_filename, new_out_filename);
+						if (out_file.is_open())	{
+							out_file.close();
+						}
+						out_file.open(curr_out_filename);
+					}
+					int	num_lines = curr_es->ShowDiff(prev_es, out_file);
 #if 0
 					if (num_lines > 0) {
 						imshow("Frame", curr_frame);

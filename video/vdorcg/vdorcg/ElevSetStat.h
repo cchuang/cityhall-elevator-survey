@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <opencv2/core.hpp>
 #include "ElevStat.h"
 
@@ -12,9 +13,9 @@ public:
 
 	int	SetElev(cv::Point anchor, int num_floors, std::string name);
 	int	SetElevGrp(cv::Point anchor, int num_floors, std::string name);
-	int RecogStat(cv::Mat frame, double msec);
+	int RecogStat(cv::Mat frame, time_t ts);
 	int	Show();
-	int	ShowDiff(ElevSetStat *other);
+	int	ShowDiff(ElevSetStat *other, std::ostream &outfile);
 	ElevStat *GetES(int idx); 
 	ElevStat *GetEGS(int idx); 
 
