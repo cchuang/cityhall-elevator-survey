@@ -82,7 +82,7 @@ private:
 	int RecogWeight(cv::Mat frame);
 	int VerifyName(cv::Mat frame);
 	void DetectDirection(cv::Mat frame);
-	char *RecogRectText(cv::Mat frame, cv::Rect roi, bool debug);
+	char *RecogRectText(cv::Mat frame, cv::Rect roi, int ratio, bool debug);
 };
 
 static tesseract::TessBaseAPI *g_ocr;

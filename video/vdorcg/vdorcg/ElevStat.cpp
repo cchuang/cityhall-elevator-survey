@@ -150,6 +150,7 @@ int	ElevStat::Show(){
 	return 0;
 }
 
+// TODO: it's a very nasty implementation...
 int	ElevStat::ShowDiff(ElevStat *other) {
 	int	result = 0;
 	if (type == TYPE_GENERAL_CAR) {
@@ -199,12 +200,12 @@ FloorStat *ElevStat::GetFS(int i) {
 	return floors_stat.at(i);
 }
 
-char *ElevStat::RecogRectText(Mat frame, Rect roi, bool debug) {
+char *ElevStat::RecogRectText(Mat frame, Rect roi, int ratio, bool debug) {
 	cv::Mat subframe = frame(roi).clone();
 	cv::Mat resize_frame, laplace, sharp;
 
 	cvtColor(subframe, subframe, COLOR_BGRA2GRAY);
-	cv::resize(subframe, resize_frame, Size(), 3, 3, cv::INTER_CUBIC);
+	cv::resize(subframe, resize_frame, Size(), ratio, ratio, cv::INTER_CUBIC);
 	cv::Laplacian(resize_frame, laplace, CV_8UC1);
 	sharp = resize_frame - laplace - laplace - laplace;
 	//sharp = resize_frame;
@@ -227,8 +228,11 @@ char *ElevStat::RecogRectText(Mat frame, Rect roi, bool debug) {
 int	ElevStat::RecogElevFloor(cv::Mat frame) {
 	int	floor = -99;
 	Rect roi(anchor + trans_floor_text_box, size_floor_text_box);
-	const char* ocr_out = RecogRectText(frame, roi, true);
+	const char* ocr_out = RecogRectText(frame, roi, 4, true);
 	// ocr_out: formatted as <char>0A0A. e.g. B2 is 0x42320A0A
+	string ocr_string (ocr_out);
+	std::replace(ocr_string.begin(), ocr_string.end(), '\n', ' ') ;
+	//cout << name << ": real text " << ocr_string << endl;
 	if (strlen(ocr_out) > 0) {
 		if (ocr_out[0] == 'B') {
 			floor = -std::stoi(ocr_out + 1);
@@ -236,7 +240,7 @@ int	ElevStat::RecogElevFloor(cv::Mat frame) {
 			floor = std::stoi(ocr_out);
 		}
 	} 
-	//cout << floor << endl;
+	//cout << name << ":" <<floor << endl;
 	delete ocr_out;
 
 	return floor;
@@ -246,7 +250,7 @@ int	ElevStat::RecogWeight(cv::Mat frame) {
 	int	weight = -99;
 	Rect roi(anchor + trans_weight_box, size_weight_box);
 
-	const char* ocr_out = RecogRectText(frame, roi, false);
+	const char* ocr_out = RecogRectText(frame, roi, 3, false);
 	//cout << name << ":len " << strlen(ocr_out) << ":" << ocr_out << endl;
 	if (strlen(ocr_out) > 0) {
 		weight = std::stoi(ocr_out);
@@ -259,7 +263,7 @@ int	ElevStat::RecogWeight(cv::Mat frame) {
 int ElevStat::VerifyName(cv::Mat frame) {
 	Rect roi(anchor + trans_name_text_box, size_name_text_box);
 
-	const char* ocr_out = RecogRectText(frame, roi, true);
+	const char* ocr_out = RecogRectText(frame, roi, 3, true);
 	std::string ocr_result(ocr_out);
 	delete ocr_out;
 
@@ -285,6 +289,7 @@ void ElevStat::DetectDirection(cv::Mat frame) {
 	cv::reduce(subframe, row_sum, 1, REDUCE_SUM, CV_64F);
 	// delay
 	row_sum(Rect(0, 1, row_sum.cols, row_sum.rows - 1)).copyTo(row_sum_lag(Rect(0, 0, row_sum.cols, row_sum.rows - 1)));
+	// take the derivative
 	row_diff = row_sum_lag - row_sum;
 	// find the median
 	cv::sort(row_diff, row_diff, SORT_EVERY_COLUMN); 
