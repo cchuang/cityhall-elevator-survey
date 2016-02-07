@@ -103,8 +103,8 @@ int ElevStat::SetNumFloors(int n) {
 	return 0;
 }
 
-int	ElevStat::RecogStat(cv::Mat frame, time_t ts){
-	ts = ts;
+int	ElevStat::RecogStat(cv::Mat frame, time_t ts_out){
+	ts = ts_out;
 	int	verify_result;
 	if (type == TYPE_GENERAL_CAR) {
 		verify_result = VerifyName(frame);
