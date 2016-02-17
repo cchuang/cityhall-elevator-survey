@@ -62,8 +62,8 @@ void InitElevStat(ElevSetStat *elevs_stat) {
 		elevs_stat[i].SetElev(Point(199, 101), 14, "NC2");
 		elevs_stat[i].SetElev(Point(323, 101), 14, "NC3");
 		elevs_stat[i].SetElev(Point(520, 100), 14, "NC4");
-		elevs_stat[i].SetElev(Point(645, 99), 14, "NC5");
-		elevs_stat[i].SetElev(Point(844, 101), 14, "NC6");
+		elevs_stat[i].SetElev(Point(645, 100), 14, "NC5");
+		elevs_stat[i].SetElev(Point(843, 102), 14, "NC6");
 		elevs_stat[i].SetElevGrp(Point(4, 100), 14, "NC1-3");
 		elevs_stat[i].SetElevGrp(Point(448, 100), 14, "NC4-5");
 		elevs_stat[i].SetElevGrp(Point(771, 103), 14, "NC6~");

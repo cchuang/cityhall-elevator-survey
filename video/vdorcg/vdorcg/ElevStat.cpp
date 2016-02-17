@@ -265,6 +265,7 @@ int	ElevStat::RecogWeight(cv::Mat frame) {
 	int	weight = -99;
 	Rect roi(anchor + trans_weight_box, size_weight_box);
 
+
 	const char* ocr_out = RecogRectText(frame, roi, 3, false);
 	//cout << name << ":len " << strlen(ocr_out) << ":" << ocr_out << endl;
 	if (strlen(ocr_out) > 0) {
@@ -272,6 +273,12 @@ int	ElevStat::RecogWeight(cv::Mat frame) {
 			weight = std::stoi(ocr_out);
 		} 
 	} 
+#if 0
+	Mat subframe = frame(Rect(anchor + trans_name_text_box, size_name_text_box)).clone();
+	cout << name << endl;
+	imshow("Weight", subframe);
+	waitKey(0);
+#endif
 	delete ocr_out;
 
 	return weight;
@@ -284,11 +291,20 @@ int ElevStat::VerifyName(cv::Mat frame) {
 	std::string ocr_result(ocr_out);
 	delete ocr_out;
 
+#if 0
+	Mat subframe = frame(roi).clone();
+	cout << name << ": " << ocr_result << endl;
+	imshow("NAME", subframe);
+	waitKey(0);
+#endif
 	// nasty approach. temporally method. 
-	if ((ocr_result.compare(0, 2, "N0") == 0) || 
-			(ocr_result.compare(0, 2, "S0") == 0)) {
+	if (ocr_result.compare(1, 2, "0") == 0) {
 		ocr_result[1] = 'C';
-	}	
+	}
+
+	if (ocr_result.compare(2, 1, "S") == 0) {
+		ocr_result[2] = '5';
+	}
 
 	//cout << name << ":" << name.size() << ":" << ocr_result.compare(0, name.size(), name) << endl;
 	return ocr_result.compare(0, name.size(), name);
@@ -314,14 +330,15 @@ void ElevStat::DetectDirection(cv::Mat frame) {
 
 	if (indicator > 100) {
 		up_down = GOING_UP;
-	} else if (indicator < 100) {
+	} else if (indicator < -100) {
 		up_down = GOING_DOWN;
 	} else {
 		up_down = GOING_STOP;
 	}
 
 #if 0
-	cout << up_down << endl;
+	cout << row_diff << endl;
+	cout << "Result: " << up_down << endl;
 
 	imshow("detect", subframe);
 	waitKey(0);
@@ -333,7 +350,7 @@ static int CompareDouble (const void * a, const void * b)
   return (int) ( *(double*)b - *(double*)a );
 }
 
-static int	DtctSgnfctColor(cv::Mat frame) {
+static int	DtctSgnfctColor(cv::Mat frame, bool debug) {
 	Vec3d p;
 	double tmp[3] = {0, 0, 0};
 	double gap[2];
@@ -344,6 +361,9 @@ static int	DtctSgnfctColor(cv::Mat frame) {
 	cv::reduce(frame, sum_row, 0, REDUCE_SUM, CV_64FC3);
 	cv::reduce(sum_row, sum, 1, REDUCE_SUM, CV_64FC3);
 	p = sum.at<Vec3d>(0, 0);
+	if (debug) {
+		cout << p << endl;
+	}
 
 	for (i = 0; i < 3; i ++) {
 		tmp[i] = p[i];
@@ -352,8 +372,8 @@ static int	DtctSgnfctColor(cv::Mat frame) {
 	gap[0] = tmp[0] - tmp[1];
 	gap[1] = tmp[1] - tmp[2];
 	//cout << "\t" << p << "\t" << gap[0] << "\t" << gap[1] << endl;
-	// has significant gap, 20 is selected empirically. 
-	if (gap[0] > 20.0 * gap[1]) {
+	// has significant gap, 10 is selected empirically. 
+	if (gap[0] > 10.0 * gap[1]) {
 		for (i = 0; i < 3; i ++) {
 			if (tmp[0] == p[i]) {
 				return i;
@@ -366,28 +386,34 @@ static int	DtctSgnfctColor(cv::Mat frame) {
 void ElevStat::DetectDoorOpen(cv::Mat frame) {
 	Rect roi(anchor + trans_open_box, size_open_box);
 	Mat subframe = frame(roi).clone();
-	if (DtctSgnfctColor(subframe) == 1) {
+	if (DtctSgnfctColor(subframe, false) == 1) {
 		req_open = true;
 	} else {
 		req_open = false;
 	}
+
+#if 0
+	cout << "REQ OPEN: " << req_open << endl;
+	imshow("Detect Service", subframe);
+	waitKey(0);
+#endif
 }
 
 void ElevStat::DetectService(cv::Mat frame) {
 	Rect roi(anchor + trans_service_box, size_service_box);
 	Mat subframe = frame(roi).clone();
 
-#if 0
-	std::string	tmp_name ("tmp" + name + ".bmp"); 
-	imwrite(tmp_name, subframe);
-	cout << name << ":" << "Service detection" << endl;
-#endif
-
-	cout << setprecision(10);
-	if (DtctSgnfctColor(subframe) == 2) {
+	if (DtctSgnfctColor(subframe, false) == 2) {
 		stop_service = true;
 	} else {
 		stop_service = false;
 	}
+
+#if 0
+	cout << setprecision(10);
+	cout << "Stop service: " << stop_service << endl;
+	imshow("Detect Service", subframe);
+	waitKey(0);
+#endif
 }
 
