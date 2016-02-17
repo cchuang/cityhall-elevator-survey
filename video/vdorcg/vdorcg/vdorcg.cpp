@@ -106,6 +106,8 @@ int DetectEvents(struct FileList &in_list) {
 		Mat diff;
 		int num_nonzeros = 0; 
 		bool is_event = false;
+		time_t	curr_ts = in_list.timestamp + ((time_t) cap.get(CAP_PROP_POS_MSEC))/1000;
+		struct tm *curr_tm = std::gmtime(&curr_ts);
 
 		if ((num_frames != 0) && IsPanX1(curr_frame)) {
 #if 0
@@ -133,11 +135,9 @@ int DetectEvents(struct FileList &in_list) {
 
 			if (is_event) {
 				int	result;
-				time_t	curr_ts = in_list.timestamp + ((time_t) cap.get(CAP_PROP_POS_MSEC))/1000;
 				result = curr_es->RecogStat(curr_frame, curr_ts);
 				if (result == 0) {
 					//curr_es->Show();
-					struct tm *curr_tm = std::gmtime(&curr_ts);
 					strftime(new_out_filename, 80, "out_%F.csv", curr_tm);
 					if (strcmp(new_out_filename, curr_out_filename) != 0) {
 						strcpy(curr_out_filename, new_out_filename);
@@ -170,7 +170,10 @@ int DetectEvents(struct FileList &in_list) {
 
 		if (IsPanX1(curr_frame)) {
 			prev_frame = curr_frame.clone();
+		} else {
+			out_file << "GLOBAL," << curr_ts << ",-9,-9,ERROR,NOT_IN_PANEL_X1" << endl;
 		}
+
 		result = ReadOneFrameByN(6, cap, curr_frame, in_list);
 		num_frames ++;
 #if 0
