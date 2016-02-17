@@ -6,6 +6,7 @@
 #include <fstream>
 #include <vector>
 #include <ctime>
+#include <string>
 //#include <opencv/cv.h>
 //#include <opencv/highgui.h>
 #include <opencv2/videoio.hpp>

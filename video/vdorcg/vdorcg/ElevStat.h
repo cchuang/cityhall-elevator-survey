@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <string>
 #include <tesseract/baseapi.h>
 #include <opencv2/core.hpp>
 
@@ -60,6 +61,7 @@ const cv::Size size_service_box(22, 21);
 #define	GOING_UP	1
 #define	GOING_DOWN	-1
 #define	GOING_STOP	0
+#define	GOING_UNKNOWN	-99
 class ElevStat {
 public:
 	ElevStat(int x, int y, int num_floors);
