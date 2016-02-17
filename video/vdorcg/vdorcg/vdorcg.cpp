@@ -59,15 +59,15 @@ int ReadOneFrameByN(int n, VideoCapture &cap, Mat& frame, FileList &in_list) {
 #define SIZE_ELEVS_STAT 2
 void InitElevStat(ElevSetStat *elevs_stat) {
 	for (int i = 0; i < SIZE_ELEVS_STAT; i ++) {
-		elevs_stat[i].SetElev(Point(76, 97), 14, "NC1");
-		elevs_stat[i].SetElev(Point(199, 101), 14, "NC2");
-		elevs_stat[i].SetElev(Point(323, 101), 14, "NC3");
-		elevs_stat[i].SetElev(Point(520, 100), 14, "NC4");
-		elevs_stat[i].SetElev(Point(645, 100), 14, "NC5");
-		elevs_stat[i].SetElev(Point(843, 102), 14, "NC6");
-		elevs_stat[i].SetElevGrp(Point(4, 100), 14, "NC1-3");
-		elevs_stat[i].SetElevGrp(Point(448, 100), 14, "NC4-5");
-		elevs_stat[i].SetElevGrp(Point(771, 103), 14, "NC6~");
+		elevs_stat[i].SetElev(Point(76, 97),      14, 12, "NC1");
+		elevs_stat[i].SetElev(Point(199, 101),    14, 12, "NC2");
+		elevs_stat[i].SetElev(Point(323, 101),    14, 12, "NC3");
+		elevs_stat[i].SetElev(Point(520, 100),    14, 12, "NC4");
+		elevs_stat[i].SetElev(Point(645, 100),    14, 12, "NC5");
+		elevs_stat[i].SetElev(Point(843, 102),    14, 12, "NC6");
+		elevs_stat[i].SetElevGrp(Point(4, 100),   14, 12, "NC1-3");
+		elevs_stat[i].SetElevGrp(Point(448, 100), 14, 12, "NC4-5");
+		elevs_stat[i].SetElevGrp(Point(771, 103), 14, 12, "NC6~");
 	}
 }
 

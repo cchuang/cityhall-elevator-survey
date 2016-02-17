@@ -12,6 +12,44 @@
 using namespace std;
 using namespace cv;
 
+#define COLOR_RED   2
+#define COLOR_GREEN 1
+#define COLOR_BLUE  0
+#define COLOR_GRAY  -1
+#define COLOR_BIAS_FACTOR  0.04
+static int CompareDouble (const void * a, const void * b)
+{
+  return (int) ( *(double*)b - *(double*)a );
+}
+
+static int	DtctSgnfctColor(cv::Mat frame, bool debug) {
+	Vec3d p;
+	Mat	ycbcrframe;
+	Mat sum_row = Mat::zeros(1, frame.cols, CV_64FC3);
+	Mat sum = Mat::zeros(1, 1, CV_64FC3);
+
+	cvtColor(frame, ycbcrframe, COLOR_BGR2YCrCb);
+	cv::reduce(ycbcrframe, sum_row, 0, REDUCE_AVG, CV_64FC3);
+	cv::reduce(sum_row, sum, 1, REDUCE_AVG, CV_64FC3);
+	p = sum.at<Vec3d>(0, 0);
+	if (debug) {
+		cout << p << endl;
+	}
+
+	p[1] = p[1]/256 - 0.5;
+	p[2] = p[2]/256 - 0.5;
+
+	if (p[1] > COLOR_BIAS_FACTOR) {
+		return COLOR_RED;
+	} else if (p[2] > COLOR_BIAS_FACTOR) {
+		return COLOR_BLUE;
+	} else if (p[1] < -COLOR_BIAS_FACTOR && p[2] < -COLOR_BIAS_FACTOR) {
+		return COLOR_GREEN;
+	} else {
+		return COLOR_GRAY;
+	}
+}
+
 FloorStat::FloorStat(int x, int y) {
 	SetAnchor(x, y);
 }
@@ -36,6 +74,7 @@ int	FloorStat::RecogStat(cv::Mat	frame) {
 		door_is_opening = (p[0] > 235 && p[1] > 235 && p[2] > 235);
 		p = frame.at<Vec3b>(anchor + trans_car);
 		car_is_here = (p[0] > 220 && p[1] < 50 && p[2] < 50);
+		DetectDoorStat(frame);
 	} else if (type == TYPE_CAR_GROUP) {
 		p = frame.at<Vec3b>(anchor + trans_ii_up);
 		req_up = (p[0] < 100 && p[1] > 235 && p[2] < 100);
@@ -48,14 +87,48 @@ int	FloorStat::RecogStat(cv::Mat	frame) {
 	return 0;
 }
 
-ElevStat::ElevStat(int x, int y, int num_floors) {
-	ElevStat(cv::Point(x, y), num_floors);
+void FloorStat::DetectDoorStat (cv::Mat frame) {
+	Rect roi(anchor + trans_door_box, size_door_box);
+	cv::Mat subframe = frame(roi).clone();
+	cv::Mat bwframe;
+	cv::Mat sum_row = Mat::zeros(1, frame.cols, CV_64FC1);
+	cv::Mat sum = Mat::zeros(1, 1, CV_64FC1);
+	double	sumd;
+
+	cvtColor(subframe, bwframe, COLOR_BGRA2GRAY);
+	cv::reduce(bwframe, sum_row, 0, REDUCE_SUM, CV_64FC1);
+	cv::reduce(sum_row, sum, 1, REDUCE_SUM, CV_64FC1);
+	sumd = sum.at<double>(0, 0);
+
+	if (sumd > 17000) { // All white
+		door_sstat = DOOR_SSTAT_OPEN;
+	} else if (sumd < 5000){ // All blue
+		door_sstat = DOOR_SSTAT_CLOSED;
+	} else {
+		if (DtctSgnfctColor(subframe, false) == COLOR_BLUE) {
+			door_sstat = DOOR_SSTAT_OPEN_H;
+		} else {
+			door_sstat = DOOR_SSTAT_NOT_HERE;
+		}
+	} 
+#if 0
+	//if (door_sstat == DOOR_SSTAT_OPEN_H) {
+	if (true) {
+		cout << sumd << "," << door_sstat << endl;
+		imshow("door stat", subframe);
+		waitKey(0);
+	}
+#endif
+}
+
+ElevStat::ElevStat(int x, int y, int num_floors, int highest) {
+	ElevStat(cv::Point(x, y), num_floors, highest);
 }
 
 
-ElevStat::ElevStat(cv::Point ac, int num_floors) {
+ElevStat::ElevStat(cv::Point ac, int num_floors, int highest) {
 	SetAnchor(ac.x, ac.y);
-	SetNumFloors(num_floors);
+	SetNumFloors(num_floors, highest);
 	if (g_ocr == NULL) {
 		GenericVector<STRING>	*vars_vec = new GenericVector<STRING>();
 		GenericVector<STRING>	*vars_values = new GenericVector<STRING>();
@@ -80,8 +153,8 @@ int ElevStat::SetAnchor(int x, int y) {
 	return 0;
 }
 
-int ElevStat::SetNumFloors(int n) {
-	int	floor = FLOOR_START_AT;	
+int ElevStat::SetNumFloors(int n, int highest) {
+	int	floor = highest;	
 	for (int i=0; i < n; i ++) {
 		floors_stat.push_back(
 				new FloorStat(anchor.x + trans_floor_box.x, 
@@ -204,6 +277,24 @@ int	ElevStat::ShowDiff(ElevStat *other, std::ostream &outfile) {
 			if (me->car_is_here != he->car_is_here) {
 				result ++;
 				outfile << name << "," << ts << "," << me->floor << "," << up_down << ",CARISHERE,"  << me->car_is_here << endl;
+			}
+			if (me->door_sstat != he->door_sstat) {
+				result ++;
+				if (he->door_sstat == DOOR_SSTAT_CLOSED && me->door_sstat == DOOR_SSTAT_OPEN_H) {
+					outfile << name << "," << ts << "," << me->floor << "," << up_down << ",DOORSTAT,DOOR_IS_OPENING" << endl;
+				} else if (he->door_sstat == DOOR_SSTAT_OPEN_H && me->door_sstat == DOOR_SSTAT_OPEN) {
+					outfile << name << "," << ts << "," << me->floor << "," << up_down << ",DOORSTAT,DOOR_HAS_OPENED" << endl;
+				} else if (he->door_sstat == DOOR_SSTAT_OPEN && me->door_sstat == DOOR_SSTAT_OPEN_H) {
+					outfile << name << "," << ts << "," << me->floor << "," << up_down << ",DOORSTAT,DOOR_IS_CLOSING" << endl;
+				} else if (he->door_sstat == DOOR_SSTAT_OPEN_H && me->door_sstat == DOOR_SSTAT_CLOSED) {
+					outfile << name << "," << ts << "," << me->floor << "," << up_down << ",DOORSTAT,DOOR_HAS_CLOSED" << endl;
+				} else if (he->door_sstat == DOOR_SSTAT_CLOSED && me->door_sstat == DOOR_SSTAT_NOT_HERE) {
+					outfile << name << "," << ts << "," << me->floor << "," << up_down << ",DOORSTAT,CAR_IS_LEAVING" << endl;
+				} else if (he->door_sstat == DOOR_SSTAT_NOT_HERE && me->door_sstat == DOOR_SSTAT_CLOSED) {
+					outfile << name << "," << ts << "," << me->floor << "," << up_down << ",DOORSTAT,CAR_IS_ARRIVING" << endl;
+				} else {
+					outfile << name << "," << ts << "," << me->floor << "," << up_down << ",DOORSTAT,UNDEFINED" << endl;
+				}
 			}
 		}
 	}
@@ -344,57 +435,21 @@ void ElevStat::DetectDirection(cv::Mat frame) {
 #endif
 }
 
-static int CompareDouble (const void * a, const void * b)
-{
-  return (int) ( *(double*)b - *(double*)a );
-}
-
-static int	DtctSgnfctColor(cv::Mat frame, bool debug) {
-	Vec3d p;
-	double tmp[3] = {0, 0, 0};
-	double gap[2];
-	int	i;
-	Mat sum_row = Mat::zeros(1, frame.cols, CV_64FC3);
-	Mat sum = Mat::zeros(1, 1, CV_64FC3);
-
-	cv::reduce(frame, sum_row, 0, REDUCE_SUM, CV_64FC3);
-	cv::reduce(sum_row, sum, 1, REDUCE_SUM, CV_64FC3);
-	p = sum.at<Vec3d>(0, 0);
-	if (debug) {
-		cout << p << endl;
-	}
-
-	for (i = 0; i < 3; i ++) {
-		tmp[i] = p[i];
-	}
-	qsort(tmp, 3, sizeof(double), CompareDouble);
-	gap[0] = tmp[0] - tmp[1];
-	gap[1] = tmp[1] - tmp[2];
-	//cout << "\t" << p << "\t" << gap[0] << "\t" << gap[1] << endl;
-	// has significant gap, 10 is selected empirically. 
-	if (gap[0] > 10.0 * gap[1]) {
-		for (i = 0; i < 3; i ++) {
-			if (tmp[0] == p[i]) {
-				return i;
-			}
-		}
-	} 
-	return -1;
-}
-
 void ElevStat::DetectDoorOpen(cv::Mat frame) {
 	Rect roi(anchor + trans_open_box, size_open_box);
 	Mat subframe = frame(roi).clone();
-	if (DtctSgnfctColor(subframe, false) == 1) {
+	if (DtctSgnfctColor(subframe, false) == COLOR_GREEN) {
 		req_open = true;
 	} else {
 		req_open = false;
 	}
 
 #if 0
-	cout << "REQ OPEN: " << req_open << endl;
-	imshow("Detect Service", subframe);
-	waitKey(0);
+	if (req_open) {
+		cout << "REQ OPEN: " << req_open << endl;
+		imshow("Detect Service", subframe);
+		waitKey(0);
+	}
 #endif
 }
 
@@ -402,14 +457,13 @@ void ElevStat::DetectService(cv::Mat frame) {
 	Rect roi(anchor + trans_service_box, size_service_box);
 	Mat subframe = frame(roi).clone();
 
-	if (DtctSgnfctColor(subframe, false) == 2) {
+	if (DtctSgnfctColor(subframe, false) == COLOR_RED) {
 		stop_service = true;
 	} else {
 		stop_service = false;
 	}
 
 #if 0
-	cout << setprecision(10);
 	cout << "Stop service: " << stop_service << endl;
 	imshow("Detect Service", subframe);
 	waitKey(0);

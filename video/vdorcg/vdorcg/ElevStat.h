@@ -13,10 +13,13 @@ const cv::Point trans_ii_down(31, 8);
 const cv::Point trans_stop(45, 10);
 const cv::Point trans_door(61, 11);
 const cv::Point trans_car(87, 7);
+const cv::Point trans_door_box(51, 0);
+const cv::Size  size_door_box(18, 6);
 #define	FLOOR_HEIGHT	(18.85)
-#define TYPE_GENERAL_CAR	1
-#define TYPE_CAR_GROUP		2
-
+#define	DOOR_SSTAT_NOT_HERE		0
+#define	DOOR_SSTAT_OPEN			1
+#define	DOOR_SSTAT_OPEN_H		2
+#define	DOOR_SSTAT_CLOSED		3
 class FloorStat {
 	// height ~ 264/14 ~ 18.85
 public: 
@@ -25,6 +28,7 @@ public:
 
 	int	SetAnchor(int x, int y);
 	int	RecogStat(cv::Mat	frame);
+	void DetectDoorStat(cv::Mat	frame);
 
 	bool	req_up;	
 	bool	req_down;	
@@ -33,6 +37,7 @@ public:
 	bool	car_is_here;
 	int		floor;
 	int		type; // type I is for general car (elevator). type II is for car group.
+	int		door_sstat;
 
 private:
 	cv::Point	anchor;
@@ -52,25 +57,27 @@ const cv::Size size_weight_box(12, 11);
 const cv::Point trans_updown_box(53, 92);
 const cv::Size size_updown_box(22, 21);
 // A box which shows the OPEN button is pressed
-const cv::Point trans_open_box(50, 69);
-const cv::Size size_open_box(22, 21);
-// A box which shows the OPEN button is pressed
-const cv::Point trans_service_box(1, 91);
-const cv::Size size_service_box(22, 21);
-#define	FLOOR_START_AT	12
+const cv::Point trans_open_box(50, 74);
+const cv::Size size_open_box(22, 11);
+// A box which shows the service status
+const cv::Point trans_service_box(1, 96);
+const cv::Size size_service_box(22, 11);
+#define TYPE_GENERAL_CAR	1
+#define TYPE_CAR_GROUP		2
+
 #define	GOING_UP	1
 #define	GOING_DOWN	-1
 #define	GOING_STOP	0
-#define	GOING_UNKNOWN	-99
+#define	GOING_UNKNOWN	-9
 class ElevStat {
 public:
-	ElevStat(int x, int y, int num_floors);
-	ElevStat(cv::Point ac, int num_floors);
+	ElevStat(int x, int y, int num_floors, int highest);
+	ElevStat(cv::Point ac, int num_floors, int highest);
 	ElevStat(){};
 	virtual ~ElevStat();
 
 	int SetAnchor(int x, int y);
-	int	SetNumFloors(int n);
+	int	SetNumFloors(int n, int highest);
 	int SetType(int	in_type);
 	int	RecogStat(cv::Mat	frame, time_t ts);
 	int	Show();

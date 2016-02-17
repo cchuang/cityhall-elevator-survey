@@ -11,8 +11,8 @@ public:
 	ElevSetStat();
 	~ElevSetStat();
 
-	int	SetElev(cv::Point anchor, int num_floors, std::string name);
-	int	SetElevGrp(cv::Point anchor, int num_floors, std::string name);
+	int	SetElev(cv::Point anchor, int num_floors, int highest, std::string name);
+	int	SetElevGrp(cv::Point anchor, int num_floors, int highest, std::string name);
 	int RecogStat(cv::Mat frame, time_t ts);
 	int	Show();
 	int	ShowDiff(ElevSetStat *other, std::ostream &outfile);
