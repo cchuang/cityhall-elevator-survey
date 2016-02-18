@@ -19,7 +19,7 @@ clean:
 	@$(MSBUILD) $(SOLUTION) /t:clean /v:q /p:Configuration=Release /p:Platform=$(PLATFORM) /maxcpucount:6 
 	
 test:
-	$(TARGET) test_input.txt
+	TZ=CST-8; $(TARGET) test_input.txt
 	#$(TARGET) "D:\cityhall-elevator-survey\video\chunks\1451444819_00000000.mp4" 
 	#$(TARGET) "D:\cityhall-elevator-survey\video\chunks\1451444819_00043200.mp4" 
 

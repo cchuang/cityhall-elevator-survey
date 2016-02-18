@@ -427,11 +427,13 @@ void ElevStat::DetectDirection(cv::Mat frame) {
 	}
 
 #if 0
+	if (up_down == GOING_STOP && ts == 1451444915) {
 	cout << row_diff << endl;
 	cout << "Result: " << up_down << endl;
 
 	imshow("detect", subframe);
 	waitKey(0);
+	}
 #endif
 }
 

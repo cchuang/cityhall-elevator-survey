@@ -27,6 +27,7 @@ struct FileList {
 static int OpenNewCap(VideoCapture &cap, FileList &in_list) {
 	string	in_file_name;
 	in_list.list >> in_file_name;
+	time_t	now = time(NULL);
 	cap.open(in_file_name);
 	if (!cap.isOpened()) {
 		cerr << "Cannot open the video file " << in_file_name << endl;
@@ -34,9 +35,9 @@ static int OpenNewCap(VideoCapture &cap, FileList &in_list) {
 	}
 	in_list.timestamp = std::stoi(in_file_name.substr(in_file_name.size()-23, 10));
 	in_list.timestamp += std::stoi(in_file_name.substr(in_file_name.size()-12, 8));
-	//adjust timezone manually
-	in_list.timestamp += 8 * 60 * 60;
-	cerr << in_file_name <<":"<<in_list.timestamp << endl << std::asctime(std::gmtime(&in_list.timestamp)) << endl;
+	cerr << in_file_name <<":"<< in_list.timestamp << endl; 
+	cerr << "\t Recording time: " << std::asctime(std::localtime(&in_list.timestamp));
+	cerr << "\t Now: " << std::asctime(std::localtime(&now));
 	return 0;
 }
 
@@ -89,6 +90,7 @@ int DetectEvents(struct FileList &in_list) {
 	VideoCapture	cap;
 	char curr_out_filename[80];
 	char new_out_filename[80];
+	bool	err_frame_indicator = false;
 	std::ofstream	out_file("dummy.txt");
 
 	InitElevStat(elevs_stat);
@@ -107,7 +109,7 @@ int DetectEvents(struct FileList &in_list) {
 		int num_nonzeros = 0; 
 		bool is_event = false;
 		time_t	curr_ts = in_list.timestamp + ((time_t) cap.get(CAP_PROP_POS_MSEC))/1000;
-		struct tm *curr_tm = std::gmtime(&curr_ts);
+		struct tm *curr_tm = std::localtime(&curr_ts);
 
 		if ((num_frames != 0) && IsPanX1(curr_frame)) {
 #if 0
@@ -165,13 +167,17 @@ int DetectEvents(struct FileList &in_list) {
 			}
 		} else if (num_frames == 0) {
 			// Assumption: the first frame must be on the panel we are interested in. 
-			prev_es->RecogStat(curr_frame, cap.get(CAP_PROP_POS_MSEC));
+			prev_es->RecogStat(curr_frame, (time_t)cap.get(CAP_PROP_POS_MSEC));
 		}
 
 		if (IsPanX1(curr_frame)) {
 			prev_frame = curr_frame.clone();
+			err_frame_indicator = false;
 		} else {
-			out_file << "GLOBAL," << curr_ts << ",-9,-9,ERROR,NOT_IN_PANEL_X1" << endl;
+			if (!err_frame_indicator) {
+				out_file << "GLOBAL," << curr_ts << ",-9,-9,ERROR,NOT_IN_PANEL_X1" << endl;
+			} 
+			err_frame_indicator = true;
 		}
 
 		result = ReadOneFrameByN(6, cap, curr_frame, in_list);
@@ -183,6 +189,7 @@ int DetectEvents(struct FileList &in_list) {
 #endif
 	}
 
+	cerr << "Die gracefully." << endl;
 	delete [] elevs_stat;
 	return 0;
 }
