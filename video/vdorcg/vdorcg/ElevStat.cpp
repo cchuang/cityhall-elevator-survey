@@ -12,6 +12,7 @@
 using namespace std;
 using namespace cv;
 
+#define COLOR_WHITE 3 
 #define COLOR_RED   2
 #define COLOR_GREEN 1
 #define COLOR_BLUE  0
@@ -87,9 +88,37 @@ int	FloorStat::RecogStat(cv::Mat	frame) {
 	return 0;
 }
 
+static int	QuickColorRcg(Vec3b p) {
+	if (p[0] > 235 && p[1] > 235 && p[2] > 235) {
+		return COLOR_WHITE;
+	} else if (p[0] > 200 && p[1] < 50 && p[2] < 50) {
+		return COLOR_BLUE;
+	} else {
+		return COLOR_GRAY;
+	}
+}
+
 void FloorStat::DetectDoorStat (cv::Mat frame) {
 	Rect roi(anchor + trans_door_box, size_door_box);
 	cv::Mat subframe = frame(roi).clone();
+	/* Naive point approach */
+	int	nsstat;
+	int	color[2];
+	color[0] = QuickColorRcg(subframe.at<Vec3b>(Point(2, 4)));
+	color[1] = QuickColorRcg(subframe.at<Vec3b>(Point(7, 4)));
+	if (color[0] == COLOR_WHITE && color[1] == COLOR_WHITE) {
+		nsstat = DOOR_SSTAT_OPEN;
+	} else if (color[0] == COLOR_BLUE && color[1] == COLOR_WHITE) {
+		nsstat = DOOR_SSTAT_OPEN_H;
+	} else if (color[0] == COLOR_BLUE && color[1] == COLOR_BLUE) {
+		nsstat = DOOR_SSTAT_CLOSED;
+	} else {
+		nsstat = DOOR_SSTAT_NOT_HERE;
+	}
+	door_sstat = nsstat;
+
+#if 0
+	/* color proportion approach */
 	cv::Mat bwframe;
 	cv::Mat sum_row = Mat::zeros(1, frame.cols, CV_64FC1);
 	cv::Mat sum = Mat::zeros(1, 1, CV_64FC1);
@@ -111,10 +140,12 @@ void FloorStat::DetectDoorStat (cv::Mat frame) {
 			door_sstat = DOOR_SSTAT_NOT_HERE;
 		}
 	} 
+#endif
+
 #if 0
-	//if (door_sstat == DOOR_SSTAT_OPEN_H) {
-	if (true) {
-		cout << sumd << "," << door_sstat << endl;
+	if (nsstat != door_sstat ) {
+		cout << subframe.at<Vec3b>(Point(2, 4)) << "," << subframe.at<Vec3b>(Point(7, 4)) << "," << color[0] << "," << color[1] << endl;
+		cout << sumd << "," << door_sstat << "," << nsstat << endl;
 		imshow("door stat", subframe);
 		waitKey(0);
 	}
@@ -335,11 +366,9 @@ int	ElevStat::RecogElevFloor(cv::Mat frame) {
 	Rect roi(anchor + trans_floor_text_box, size_floor_text_box);
 	const char* ocr_out = RecogRectText(frame, roi, 4, false);
 	// ocr_out: formatted as <char>0A0A. e.g. B2 is 0x42320A0A
-	string ocr_string (ocr_out);
-	std::replace(ocr_string.begin(), ocr_string.end(), '\n', ' ') ;
-	//cout << name << ": real text " << ocr_string << endl;
+	
 	if (strlen(ocr_out) > 0) {
-		if (ocr_out[0] == 'B' && ocr_out[1] <= '9' && ocr_out[1] >= '0') {
+		if (ocr_out[0] == 'B' && strlen(ocr_out) > 1 && ocr_out[1] <= '9' && ocr_out[1] >= '0') {
 			floor = -std::stoi(ocr_out + 1);
 		} else if (ocr_out[0] <= '9' && ocr_out[0] >= '0') {
 			floor = std::stoi(ocr_out);
@@ -388,12 +417,13 @@ int ElevStat::VerifyName(cv::Mat frame) {
 	waitKey(0);
 #endif
 	// nasty approach. temporally method. 
-	if (ocr_result.compare(1, 2, "0") == 0) {
-		ocr_result[1] = 'C';
-	}
-
-	if (ocr_result.compare(2, 1, "S") == 0) {
-		ocr_result[2] = '5';
+	if (ocr_result.size() >= 3) {
+		if (ocr_result.compare(1, 1, "0") == 0) {
+			ocr_result[1] = 'C';
+		}
+		if (ocr_result.compare(2, 1, "S") == 0) {
+			ocr_result[2] = '5';
+		}
 	}
 
 	//cout << name << ":" << name.size() << ":" << ocr_result.compare(0, name.size(), name) << endl;

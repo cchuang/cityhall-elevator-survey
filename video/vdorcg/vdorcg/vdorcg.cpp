@@ -189,7 +189,6 @@ int DetectEvents(struct FileList &in_list) {
 #endif
 	}
 
-	cerr << "Die gracefully." << endl;
 	delete [] elevs_stat;
 	return 0;
 }
