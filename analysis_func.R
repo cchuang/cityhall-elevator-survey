@@ -104,6 +104,28 @@ CountTimeDuration <- function(x, out.data=data.frame()) {
 	return(nrow(x.odd))
 }
 
+CountNoPpLv <- function(x, out.data=data.frame()) {
+	# sorting
+	x <- x[ with(x, order(Time)), ]
+
+	xp <- data.frame(Car=x$Car, est.no.p = x$Val / 5)# max load 20 people, 
+	xp$est.no.p.l <- xp$est.no.p - c(xp$est.no.p[-1], NA) # no. of people leave
+	xp$est.no.p.l[xp$est.no.p.l < 0] <- 0
+
+	#d <- timeBasedSeq("2010-05-24 0000/2010-05-30 0000/H")
+	start.date <- format(min(x$Time), "%Y-%m-%d")
+	end.date <- format(max(x$Time + 24 * 60 *60), "%Y-%m-%d")
+	d <- timeBasedSeq(paste0(c(start.date, " 0000/", end.date, " 0000/H"), collapse=""))
+
+	#xp$time.interval <- d[findInterval(x$Time, d)]
+	xp$time.interval <- findInterval(x$Time, d)
+	res <- ddply(xp, .(Car, time.interval), summarize, no.p.lv=sum(est.no.p.l, na.rm=TRUE))
+	res$time.interval <- d[res$time.interval] 
+
+	eval(substitute(out.data<-rbind(out.data, data.frame(res))), envir=.GlobalEnv)
+	return(nrow(xp))
+}
+
 CountMultiSummoning <- function(x, full.data, event) {
 	y <- list(cnt=nrow(x), unchanged=0, multi.waiting=0, uc.rate=0)
 	curr.grp <- unique(x$CarGrp)
@@ -150,5 +172,79 @@ CountMultiSummoning <- function(x, full.data, event) {
 	y$cd.median <- median(cooldown)
 	y$cd.mean <- mean(cooldown)
 	return(data.frame(y))
+}
+
+ComputeMovingTime <- function(x, out=data.frame()) {
+	# sorting
+	x <- x[ with(x, order(Time)), ]
+
+	open <- subset(x, Event=="DOORISOPEN" & Val=="1")
+	closed <- subset(x, Event=="DOORISOPEN" & Val=="0")
+
+	# remove duplicated rows in time
+	rl.res <- rle(as.character(closed$Time))
+	closed <- closed[cumsum(rl.res$lengths), ]
+
+	closed.dir <- xts(as.numeric(closed$Dir), order.by = closed$Time)
+
+	if (nrow(open) %% 2 == 1) {
+		open <- open[-nrow(open),]
+	}
+	# Even rows of open
+	open.even <- open[seq(2, nrow(open), 2),]
+	# Odd rows of open
+	open.odd <- open[seq(1, nrow(open), 2),]
+
+	mt <- data.frame(car = open.odd$Car, 
+					 src = open.odd$Fl, 
+					 dst = open.even$Fl, 
+					 start.time = open.odd$Time, 
+					 duration = open.even$Time - open.odd$Time,
+					 close.time = open.even$Time, 
+					 dir = 0, req.open=FALSE)
+
+	# the elevator is going down or going up or just stop
+	# it's curcial that we have to rule out stop cases because this's not a moving elevator. 
+	time.seg <- paste0(open.odd$Time, '/', open.even$Time)
+	mt.rm.list <- vector()
+	for (i in 1:nrow(mt)) {
+		dir <- closed.dir[time.seg[i]]
+		if (length(dir) == 1) {
+			mt$dir[i] <- dir[1]
+			mt$close.time[i] <- index(dir)[1]
+		} else if (length(dir) > 1) {
+			# why multiple items returned? the xts comparison is closed. and we do need so due to poor resolution of time_t. 
+			if (mt$start.time[i] == index(dir)[1]) {
+				mt$dir[i] <- dir[2]
+				mt$close.time[i] <- index(dir)[2]
+			} else if (mt$start.time[i] + mt$duration[i] == index(dir)[2]){
+				mt$dir[i] <- dir[1]
+				mt$close.time[i] <- index(dir)[1]
+			} 
+		} else if (length(dir) == 0) {
+			# these are exceptions such as someone interfered the control panel
+			mt.rm.list[length(mt.rm.list) + 1] <- -i
+		}
+	}
+	if (length(mt.rm.list) > 0) {
+		mt <- mt[mt.rm.list,]
+	}
+
+	browser("mt == 0", expr=(nrow(mt)==0))
+
+	########################################
+	# Record that the OPEN button is pressed. 
+	for (i in 1:nrow(mt)) {
+		m <- mt[i,]
+		xs <- subset(x, Time >= m$start.time & Time <= m$close.time & Event == "REQOPEN" & Val == "1")
+		if (nrow(xs) != 0) {
+			mt$req.open[i] <- TRUE
+		} else {
+			mt$req.open[i] <- FALSE
+		}
+	}
+
+	eval(substitute(out<-rbind(out, mt)), envir=.GlobalEnv)
+
 }
 

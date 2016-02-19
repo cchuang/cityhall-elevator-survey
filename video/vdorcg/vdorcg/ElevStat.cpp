@@ -118,31 +118,6 @@ void FloorStat::DetectDoorStat (cv::Mat frame) {
 	door_sstat = nsstat;
 
 #if 0
-	/* color proportion approach */
-	cv::Mat bwframe;
-	cv::Mat sum_row = Mat::zeros(1, frame.cols, CV_64FC1);
-	cv::Mat sum = Mat::zeros(1, 1, CV_64FC1);
-	double	sumd;
-
-	cvtColor(subframe, bwframe, COLOR_BGRA2GRAY);
-	cv::reduce(bwframe, sum_row, 0, REDUCE_SUM, CV_64FC1);
-	cv::reduce(sum_row, sum, 1, REDUCE_SUM, CV_64FC1);
-	sumd = sum.at<double>(0, 0);
-
-	if (sumd > 17000) { // All white
-		door_sstat = DOOR_SSTAT_OPEN;
-	} else if (sumd < 5000){ // All blue
-		door_sstat = DOOR_SSTAT_CLOSED;
-	} else {
-		if (DtctSgnfctColor(subframe, false) == COLOR_BLUE) {
-			door_sstat = DOOR_SSTAT_OPEN_H;
-		} else {
-			door_sstat = DOOR_SSTAT_NOT_HERE;
-		}
-	} 
-#endif
-
-#if 0
 	if (nsstat != door_sstat ) {
 		cout << subframe.at<Vec3b>(Point(2, 4)) << "," << subframe.at<Vec3b>(Point(7, 4)) << "," << color[0] << "," << color[1] << endl;
 		cout << sumd << "," << door_sstat << "," << nsstat << endl;
