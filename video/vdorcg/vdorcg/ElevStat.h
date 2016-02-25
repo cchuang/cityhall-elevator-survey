@@ -80,8 +80,7 @@ public:
 	int	SetNumFloors(int n, int highest);
 	int SetType(int	in_type);
 	int	RecogStat(cv::Mat	frame, time_t ts);
-	int	Show();
-	int	ShowDiff(ElevStat *other, std::ostream &outfile);
+	int	Show(ElevStat *other, std::ostream &outfile);
 	FloorStat *GetFS(int i);
 
 	std::string	name;

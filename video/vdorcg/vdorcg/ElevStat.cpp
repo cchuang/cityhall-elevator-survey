@@ -218,29 +218,8 @@ int ElevStat::SetType(int in_type) {
 	return 0;
 }
 
-int	ElevStat::Show(){
-	if (type == TYPE_GENERAL_CAR) {
-		cout << name << "," << ts << "," << wh_floor << "," << up_down << ",WEIGHT," << weight_percent << endl;
-		cout << name << "," << ts << "," << wh_floor << "," << up_down << ",REQOPEN," << req_open << endl;
-		cout << name << "," << ts << "," << wh_floor << "," << up_down << ",STOPSERVICE," << stop_service << endl;
-	}
-	for (int i=0; i < (int) floors_stat.size(); i ++) {
-		if ((type == TYPE_GENERAL_CAR) || (type == TYPE_CAR_GROUP)) {
-			cout << name << "," << ts << "," << floors_stat.at(i)->floor << "," << up_down << ",REQUP," << floors_stat.at(i)->req_up << endl;
-			cout << name << "," << ts << "," << floors_stat.at(i)->floor << "," << up_down << ",REQDOWN," << floors_stat.at(i)->req_down << endl;
-		}
-
-		if (type == TYPE_GENERAL_CAR) {
-			cout << name << "," << ts << "," << floors_stat.at(i)->floor << "," << up_down << ",REQSTOP," << floors_stat.at(i)->req_stop << endl;
-			cout << name << "," << ts << "," << floors_stat.at(i)->floor << "," << up_down << ",DOORISOPEN," << floors_stat.at(i)->door_is_opening << endl;
-			cout << name << "," << ts << "," << floors_stat.at(i)->floor << "," << up_down << ",CARISHERE," << floors_stat.at(i)->car_is_here << endl;
-		}
-	}
-	return 0;
-}
-
 // TODO: it's a very nasty implementation...
-int	ElevStat::ShowDiff(ElevStat *other, std::ostream &outfile) {
+int	ElevStat::Show(ElevStat *other, std::ostream &outfile) {
 	int	result = 0;
 	if (type == TYPE_GENERAL_CAR) {
 		if (weight_percent != other->weight_percent) {

@@ -68,7 +68,7 @@ void InitElevStat(ElevSetStat *elevs_stat) {
 		elevs_stat[i].SetElev(Point(843, 102),    14, 12, "NC6");
 		elevs_stat[i].SetElevGrp(Point(4, 100),   14, 12, "NC1-3");
 		elevs_stat[i].SetElevGrp(Point(448, 100), 14, 12, "NC4-5");
-		elevs_stat[i].SetElevGrp(Point(771, 103), 14, 12, "NC6~");
+		elevs_stat[i].SetElevGrp(Point(771, 103), 14, 12, "NC6-");
 	}
 }
 
@@ -147,8 +147,9 @@ int DetectEvents(struct FileList &in_list) {
 							out_file.close();
 						}
 						out_file.open(curr_out_filename);
+						out_file << "id,time,floor,direction,event,para,para2" <<endl;
 					}
-					int	num_lines = curr_es->ShowDiff(prev_es, out_file);
+					int	num_lines = curr_es->Show(prev_es, out_file);
 #if 0
 					if (num_lines > 0) {
 						imshow("Frame", curr_frame);

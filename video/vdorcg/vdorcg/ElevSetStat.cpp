@@ -19,23 +19,13 @@ int	ElevSetStat::SetElevGrp(cv::Point anchor, int num_floors, int highest, std::
 	return 0;
 }
 
-int ElevSetStat::Show() {
-	for (int i = 0; i < (int) elevs_stat.size(); i ++) {
-		elevs_stat.at(i)->Show();
-	}
-	for (int i = 0; i < (int) elevgs_stat.size(); i ++) {
-		elevgs_stat.at(i)->Show();
-	}
-	return 0;
-}
-
-int ElevSetStat::ShowDiff(ElevSetStat *other, std::ostream &outfile) {
+int ElevSetStat::Show(ElevSetStat *other, std::ostream &outfile) {
 	int	result = 0;
 	for (int i = 0; i < (int) elevs_stat.size(); i ++) {
-		result += GetES(i)->ShowDiff(other->GetES(i), outfile);
+		result += GetES(i)->Show(other->GetES(i), outfile);
 	}
 	for (int i = 0; i < (int) elevgs_stat.size(); i ++) {
-		result += GetEGS(i)->ShowDiff(other->GetEGS(i), outfile);
+		result += GetEGS(i)->Show(other->GetEGS(i), outfile);
 	}
 	return result;
 }
