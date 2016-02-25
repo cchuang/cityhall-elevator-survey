@@ -176,7 +176,7 @@ int DetectEvents(struct FileList &in_list) {
 			err_frame_indicator = false;
 		} else {
 			if (!err_frame_indicator) {
-				out_file << "GLOBAL," << curr_ts << ",-9,-9,ERROR,NOT_IN_PANEL_X1" << endl;
+				out_file << "GLOBAL," << curr_ts << ",,,ERROR,NOT_IN_PANEL_X1," << endl;
 			} 
 			err_frame_indicator = true;
 		}
@@ -184,7 +184,7 @@ int DetectEvents(struct FileList &in_list) {
 		result = ReadOneFrameByN(6, cap, curr_frame, in_list);
 		num_frames ++;
 #if 0
-		if (num_frames > 12) {
+		if (num_frames > 120) {
 			break;
 		}
 #endif

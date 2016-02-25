@@ -198,14 +198,25 @@ int	ElevStat::RecogStat(cv::Mat frame, time_t ts_out){
 		DetectService(frame);
 		//cout<<name << ":" << wh_floor << ":" << weight_percent << endl;
 	} else {
-		wh_floor = 0;
-		weight_percent = 0;
-		up_down = GOING_UNKNOWN;
+		wh_floor = NA_CODE;
+		weight_percent = NA_CODE;
+		up_down = NA_CODE;
 		req_open = false;
 		stop_service = false;
 	}
+
 	for (int i=0; i < (int)floors_stat.size(); i ++) {
 		floors_stat.at(i)->RecogStat(frame);
+	}
+
+	if (type == TYPE_GENERAL_CAR) {
+		int	wh_fl_alt = RecogElevFloorByFloor();
+		if (wh_fl_alt != ERR_CODE) {
+			if (wh_floor != wh_fl_alt) {
+				cerr << name << " has 2 different location: " << wh_floor << " and " << wh_fl_alt << endl;
+				wh_floor = wh_fl_alt;
+			}
+		}
 	}
 	return 0;
 }
@@ -218,23 +229,98 @@ int ElevStat::SetType(int in_type) {
 	return 0;
 }
 
-// TODO: it's a very nasty implementation...
+int	ElevStat::WriteRow(std::ostream &outfile, std::string event, std::string param1) {
+	return WriteRow(outfile, event, param1, std::string(""));
+}
+
+int	ElevStat::WriteRow(std::ostream &outfile, std::string event, int param1) {
+	std::string out_par = (param1 == ERR_CODE) ? std::string("ERROR") : std::to_string(param1);
+	return WriteRow(outfile, event, out_par);
+}
+
+int	ElevStat::WriteRow(std::ostream &outfile, std::string event, int param1, bool param2) {
+	std::string out_par = (param1 == ERR_CODE) ? std::string("ERROR") : std::to_string(param1);
+	return WriteRow(outfile, event, out_par, std::to_string(param2));
+}
+
+int	ElevStat::WriteRow(std::ostream &outfile, std::string event, bool param1) {
+	return WriteRow(outfile, event, std::to_string(param1));
+}
+
+int	ElevStat::WriteRow(std::ostream &outfile, std::string event, std::string param1, std::string param2) {
+	std::string floor(std::to_string(wh_floor));
+	std::string dir(std::to_string(up_down));
+	if (wh_floor == NA_CODE) {
+		floor = std::string("NA");
+	} 
+	if (up_down == NA_CODE) {
+		dir = std::string("NA");
+	}
+	outfile << name << "," << ts << "," << floor << "," << dir << "," << event << "," << param1 << "," << param2 << endl; 
+	return 0;
+}
+
+bool ElevStat::CompReqStop(ElevStat *other) {
+	if (type != TYPE_GENERAL_CAR) {
+		return false;
+	} 
+
+	bool result = false;
+	for (int i=0; i < (int) floors_stat.size(); i ++) {
+		FloorStat *me, *he;
+		me = GetFS(i);
+		he = other->GetFS(i);
+		result |= (me->req_stop != he->req_stop);
+	}
+
+	return result;
+}
+
+std::string ElevStat::WriteReqStop(void) {
+	if (type != TYPE_GENERAL_CAR) {
+		return std::string("");
+	} 
+
+	bool	any_stop = false;
+	std::string result ("\"");
+	for (int i=0; i < (int) floors_stat.size(); i ++) {
+		FloorStat *me;
+		me = GetFS(i);
+		if (me->req_stop) {
+			any_stop = true;
+			result.append(std::to_string(me->floor));
+			result.append(":");
+		}
+	}
+	if (any_stop) {
+		result.pop_back();
+	}
+	result.push_back('\"');
+	return result;
+}
+
 int	ElevStat::Show(ElevStat *other, std::ostream &outfile) {
 	int	result = 0;
 	if (type == TYPE_GENERAL_CAR) {
 		if (weight_percent != other->weight_percent) {
 			result ++;
-			outfile << name << "," << ts << "," << wh_floor << "," << up_down << ",WEIGHT," << weight_percent << endl;
+			WriteRow(outfile, "WEIGHT", weight_percent);
 		}
 		if (req_open != other->req_open) {
 			result ++;
-			outfile << name << "," << ts << "," << wh_floor << "," << up_down << ",REQOPEN," << req_open << endl;
+			WriteRow(outfile, "REQ_OPEN", req_open);
 		}
 		if (stop_service != other->stop_service) {
 			result ++;
-			outfile << name << "," << ts << "," << wh_floor << "," << up_down << ",STOPSERVICE," << stop_service << endl;
+			WriteRow(outfile, "STOP_SRV", stop_service);
 		}
 	}
+
+	if (CompReqStop(other)) {
+		result ++;
+		WriteRow(outfile, "REQ_STOP", WriteReqStop());
+	}
+
 	for (int i=0; i < (int) floors_stat.size(); i ++) {
 		FloorStat *me, *he;
 		me = GetFS(i);
@@ -242,43 +328,37 @@ int	ElevStat::Show(ElevStat *other, std::ostream &outfile) {
 		if ((type == TYPE_GENERAL_CAR) || (type == TYPE_CAR_GROUP)) {
 			if (me->req_up != he->req_up) {
 				result ++;
-				outfile << name << "," << ts << "," << me->floor << "," << up_down << ",REQUP," << me->req_up << endl;
+				WriteRow(outfile, "REQ_UP", me->floor, me->req_up);
 			}
 			if (me->req_down != he->req_down) {
 				result ++;
-				outfile << name << "," << ts << "," << me->floor << "," << up_down << ",REQDOWN," << me->req_down << endl;
+				WriteRow(outfile, "REQ_DOWN", me->floor, me->req_up);
 			}
 		}
 
 		if (type == TYPE_GENERAL_CAR) {
+/*
 			if (me->req_stop != he->req_stop) {
 				result ++;
-				outfile << name << "," << ts << "," << me->floor << "," << up_down << ",REQSTOP,"    << me->req_stop << endl;
+				outfile << name << "," << ts << "," << me->floor << "," << up_down << ",REQ_STOP,"    << me->req_stop << endl;
 			}
-			if (me->door_is_opening != he->door_is_opening) {
-				result ++;
-				outfile << name << "," << ts << "," << me->floor << "," << up_down << ",DOORISOPEN," << me->door_is_opening << endl;
-			}
-			if (me->car_is_here != he->car_is_here) {
-				result ++;
-				outfile << name << "," << ts << "," << me->floor << "," << up_down << ",CARISHERE,"  << me->car_is_here << endl;
-			}
+			*/
 			if (me->door_sstat != he->door_sstat) {
 				result ++;
 				if (he->door_sstat == DOOR_SSTAT_CLOSED && me->door_sstat == DOOR_SSTAT_OPEN_H) {
-					outfile << name << "," << ts << "," << me->floor << "," << up_down << ",DOORSTAT,DOOR_IS_OPENING" << endl;
+					WriteRow(outfile, "OPENING", me->floor);
 				} else if (he->door_sstat == DOOR_SSTAT_OPEN_H && me->door_sstat == DOOR_SSTAT_OPEN) {
-					outfile << name << "," << ts << "," << me->floor << "," << up_down << ",DOORSTAT,DOOR_HAS_OPENED" << endl;
+					WriteRow(outfile, "OPENED", me->floor);
 				} else if (he->door_sstat == DOOR_SSTAT_OPEN && me->door_sstat == DOOR_SSTAT_OPEN_H) {
-					outfile << name << "," << ts << "," << me->floor << "," << up_down << ",DOORSTAT,DOOR_IS_CLOSING" << endl;
+					WriteRow(outfile, "CLOSING", me->floor);
 				} else if (he->door_sstat == DOOR_SSTAT_OPEN_H && me->door_sstat == DOOR_SSTAT_CLOSED) {
-					outfile << name << "," << ts << "," << me->floor << "," << up_down << ",DOORSTAT,DOOR_HAS_CLOSED" << endl;
+					WriteRow(outfile, "CLOSED", me->floor);
 				} else if (he->door_sstat == DOOR_SSTAT_CLOSED && me->door_sstat == DOOR_SSTAT_NOT_HERE) {
-					outfile << name << "," << ts << "," << me->floor << "," << up_down << ",DOORSTAT,CAR_IS_LEAVING" << endl;
+					WriteRow(outfile, "LEAVING", me->floor);
 				} else if (he->door_sstat == DOOR_SSTAT_NOT_HERE && me->door_sstat == DOOR_SSTAT_CLOSED) {
-					outfile << name << "," << ts << "," << me->floor << "," << up_down << ",DOORSTAT,CAR_IS_ARRIVING" << endl;
+					WriteRow(outfile, "ARRIVING", me->floor);
 				} else {
-					outfile << name << "," << ts << "," << me->floor << "," << up_down << ",DOORSTAT,UNDEFINED" << endl;
+					WriteRow(outfile, "UNKNOWN_MOVING", me->floor);
 				}
 			}
 		}
@@ -316,7 +396,7 @@ char *ElevStat::RecogRectText(Mat frame, Rect roi, int ratio, bool debug) {
 }
 
 int	ElevStat::RecogElevFloor(cv::Mat frame) {
-	int	floor = -99;
+	int	floor = ERR_CODE;
 	Rect roi(anchor + trans_floor_text_box, size_floor_text_box);
 	const char* ocr_out = RecogRectText(frame, roi, 4, false);
 	// ocr_out: formatted as <char>0A0A. e.g. B2 is 0x42320A0A
@@ -334,8 +414,25 @@ int	ElevStat::RecogElevFloor(cv::Mat frame) {
 	return floor;
 }
 
+int	ElevStat::RecogElevFloorByFloor(void) {
+	int	present_position = ERR_CODE;
+	bool	has_found = false;
+	for (int i=0; i < (int)floors_stat.size(); i ++) {
+		if(floors_stat.at(i)->car_is_here) {
+			if (!has_found) {
+				present_position = floors_stat.at(i)->floor;
+				has_found = true;
+			} else {
+				cerr << "One elevator at different floors at the same time" << endl;
+			}
+		}
+	}
+
+	return	present_position;
+}
+
 int	ElevStat::RecogWeight(cv::Mat frame) {
-	int	weight = -99;
+	int	weight = ERR_CODE;
 	Rect roi(anchor + trans_weight_box, size_weight_box);
 
 

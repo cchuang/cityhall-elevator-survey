@@ -6,6 +6,9 @@
 #include <tesseract/baseapi.h>
 #include <opencv2/core.hpp>
 
+#define ERR_CODE	-9999
+#define NA_CODE		-9998
+
 const cv::Point trans_up(30, 7);
 const cv::Point trans_down(30, 14);
 const cv::Point trans_ii_up(51, 11);
@@ -95,7 +98,15 @@ public:
 private:
 	cv::Point	anchor;
 	std::vector<FloorStat*>  floors_stat;
+	int	WriteRow(std::ostream &outfile, std::string event, std::string param1, std::string param2);
+	int	WriteRow(std::ostream &outfile, std::string event, std::string param1);
+	int	WriteRow(std::ostream &outfile, std::string event, int param1);
+	int	WriteRow(std::ostream &outfile, std::string event, int param1, bool param2);
+	int	WriteRow(std::ostream &outfile, std::string event, bool param1);
+	bool CompReqStop(ElevStat *other);
+	std::string WriteReqStop(void);
 	int	RecogElevFloor(cv::Mat frame);
+	int	RecogElevFloorByFloor(void);
 	int RecogWeight(cv::Mat frame);
 	int VerifyName(cv::Mat frame);
 	void DetectDirection(cv::Mat frame);

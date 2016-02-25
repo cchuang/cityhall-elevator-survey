@@ -14,7 +14,6 @@ public:
 	int	SetElev(cv::Point anchor, int num_floors, int highest, std::string name);
 	int	SetElevGrp(cv::Point anchor, int num_floors, int highest, std::string name);
 	int RecogStat(cv::Mat frame, time_t ts);
-	int	Show();
 	int	Show(ElevSetStat *other, std::ostream &outfile);
 	ElevStat *GetES(int idx); 
 	ElevStat *GetEGS(int idx); 
