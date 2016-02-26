@@ -32,9 +32,10 @@ NC6,1451444819,5,1,ARRIVING,5,
 |NC1-3 | Car group   |NC1, NC2, NC3|
 |NC4-5 | Car group   |NC4, NC5|
 |NC6-  | Car group   |NC6|
+|GLOBAL| Global event|all|
 
 #### time
-Time stamps (seconds since UNIX Epoch 1970-01-01) of this event. 
+The timestamp (seconds since UNIX Epoch 1970-01-01) of this event. 
 
 #### floor
 The current position of this car. 1st floor is 1, 2nd floor is 2, B1 is -1 and so on. 
@@ -62,5 +63,6 @@ The current position of this car. 1st floor is 1, 2nd floor is 2, B1 is -1 and s
 | REQ_OPEN | The 'OPEN' button on the car panel is pressed. | Set (1) or reset (0) | NULL |
 | STOP_SRV | The car is out of service. | Set (1) or reset (0) | NULL |
 | UNKNOWN_MOVING | The car's status is unknown. | N | NULL |
+| ERROR | Some error events | Arbitrary texts for this error event. | NULL |
 
 
