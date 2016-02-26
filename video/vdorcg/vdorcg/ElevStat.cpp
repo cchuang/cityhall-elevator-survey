@@ -212,9 +212,14 @@ int	ElevStat::RecogStat(cv::Mat frame, time_t ts_out){
 	if (type == TYPE_GENERAL_CAR) {
 		int	wh_fl_alt = RecogElevFloorByFloor();
 		if (wh_fl_alt != ERR_CODE) {
-			if (wh_floor != wh_fl_alt) {
+			if (wh_floor == ERR_CODE) {
+				wh_floor = wh_fl_alt;
+			} else if (abs(wh_floor - wh_fl_alt) > 1) {
 				cerr << name << " has 2 different location: " << wh_floor << " and " << wh_fl_alt << endl;
 				wh_floor = wh_fl_alt;
+			} else if (wh_floor != wh_fl_alt) {
+				//cerr << name << " has 2 different location: " << wh_floor << " and " << wh_fl_alt << endl;
+				//wh_floor = wh_fl_alt;
 			}
 		}
 	}
