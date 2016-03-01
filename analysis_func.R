@@ -176,36 +176,37 @@ CountMultiSummoning <- function(x, full.data, event) {
 
 ComputeMovingTime <- function(x, out=data.frame()) {
 	# sorting
-	x <- x[ with(x, order(Time)), ]
+	x <- x[ with(x, order(time)), ]
 
-	open <- subset(x, Event=="DOORISOPEN" & Val=="1")
-	closed <- subset(x, Event=="DOORISOPEN" & Val=="0")
+	open <- subset(x, event=="OPENING")
+	closed <- subset(x, event=="CLOSED")
 
 	# remove duplicated rows in time
-	rl.res <- rle(as.character(closed$Time))
+	rl.res <- rle(as.character(closed$time))
 	closed <- closed[cumsum(rl.res$lengths), ]
 
-	closed.dir <- xts(as.numeric(closed$Dir), order.by = closed$Time)
+	closed.dir <- xts(as.numeric(closed$direction), order.by = closed$time)
 
 	if (nrow(open) %% 2 == 1) {
 		open <- open[-nrow(open),]
 	}
 	# Even rows of open
+	print(head(x))
 	open.even <- open[seq(2, nrow(open), 2),]
 	# Odd rows of open
 	open.odd <- open[seq(1, nrow(open), 2),]
 
-	mt <- data.frame(car = open.odd$Car, 
-					 src = open.odd$Fl, 
-					 dst = open.even$Fl, 
-					 start.time = open.odd$Time, 
-					 duration = open.even$Time - open.odd$Time,
-					 close.time = open.even$Time, 
+	mt <- data.frame(car = open.odd$id, 
+					 src = open.odd$floor, 
+					 dst = open.even$floor, 
+					 start.time = open.odd$time, 
+					 duration = open.even$time - open.odd$time,
+					 close.time = open.even$time, 
 					 dir = 0, req.open=FALSE)
 
 	# the elevator is going down or going up or just stop
 	# it's curcial that we have to rule out stop cases because this's not a moving elevator. 
-	time.seg <- paste0(open.odd$Time, '/', open.even$Time)
+	time.seg <- paste0(open.odd$time, '/', open.even$time)
 	mt.rm.list <- vector()
 	for (i in 1:nrow(mt)) {
 		dir <- closed.dir[time.seg[i]]
@@ -236,7 +237,7 @@ ComputeMovingTime <- function(x, out=data.frame()) {
 	# Record that the OPEN button is pressed. 
 	for (i in 1:nrow(mt)) {
 		m <- mt[i,]
-		xs <- subset(x, Time >= m$start.time & Time <= m$close.time & Event == "REQOPEN" & Val == "1")
+		xs <- subset(x, time >= m$start.time & time <= m$close.time & event == "REQ_OPEN" & para == "1")
 		if (nrow(xs) != 0) {
 			mt$req.open[i] <- TRUE
 		} else {
