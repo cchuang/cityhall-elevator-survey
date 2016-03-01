@@ -270,6 +270,20 @@ int	ElevStat::WriteRow(std::ostream &outfile, std::string event, std::string par
 	return 0;
 }
 
+int	ElevStat::WriteRow(std::ostream &outfile, double ts, std::string event) {
+	std::string floor(std::to_string(wh_floor));
+	std::string dir(std::to_string(up_down));
+	if (wh_floor == NA_CODE) {
+		floor = std::string("NA");
+	} 
+	if (up_down == NA_CODE) {
+		dir = std::string("NA");
+	}
+	outfile << std::fixed;
+	outfile << name << "," << std::setprecision(2) << ts << "," << floor << "," << dir << "," << event << ",," << endl; 
+	return 0;
+}
+
 bool ElevStat::CompReqStop(ElevStat *other) {
 	if (type != TYPE_GENERAL_CAR) {
 		return false;
@@ -359,8 +373,22 @@ int	ElevStat::Show(ElevStat *other, std::ostream &outfile) {
 					WriteRow(outfile, "CLOSED");
 				} else if (he->door_sstat == DOOR_SSTAT_NOT_HERE && me->door_sstat == DOOR_SSTAT_CLOSED) {
 					WriteRow(outfile, "ARRIVING");
+				} else if (he->door_sstat == DOOR_SSTAT_CLOSED && me->door_sstat == DOOR_SSTAT_NOT_HERE) {
+					// ignore LEAVING
+				} else if (he->door_sstat == DOOR_SSTAT_NOT_HERE && me->door_sstat == DOOR_SSTAT_OPEN_H) {
+					WriteRow(outfile, (ts + other->ts)/2, "ARRIVING");
+					WriteRow(outfile, "OPENING");
+				} else if (he->door_sstat == DOOR_SSTAT_CLOSED && me->door_sstat == DOOR_SSTAT_OPEN) {
+					WriteRow(outfile, (ts + other->ts)/2, "OPENING");
+					WriteRow(outfile, "OPENED");
+				} else if (he->door_sstat == DOOR_SSTAT_OPEN_H && me->door_sstat == DOOR_SSTAT_NOT_HERE) {
+					WriteRow(outfile, (ts + other->ts)/2, "CLOSED");
+					// ignore LEAVING
+				} else if (he->door_sstat == DOOR_SSTAT_OPEN && me->door_sstat == DOOR_SSTAT_CLOSED) {
+					WriteRow(outfile, (ts + other->ts)/2, "CLOSING");
+					WriteRow(outfile, "CLOSED");
 				} else {
-					WriteRow(outfile, "UNKNOWN_MOVING");
+					WriteRow(outfile, "UNKNOWN_MOVING", std::to_string(he->door_sstat), std::to_string(me->door_sstat));
 				}
 			}
 		}

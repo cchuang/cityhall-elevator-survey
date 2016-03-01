@@ -104,6 +104,7 @@ private:
 	int	WriteRow(std::ostream &outfile, std::string event, int param1, bool param2);
 	int	WriteRow(std::ostream &outfile, std::string event, bool param1);
 	int	WriteRow(std::ostream &outfile, std::string event);
+	int	WriteRow(std::ostream &outfile, double ts, std::string event);
 	bool CompReqStop(ElevStat *other);
 	std::string WriteReqStop(void);
 	int	RecogElevFloor(cv::Mat frame);

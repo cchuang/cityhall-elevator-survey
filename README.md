@@ -53,12 +53,11 @@ The current position of this car. 1st floor is 1, 2nd floor is 2, B1 is -1 and s
 | REQ_STOP | A list of the pressed floor buttons on the car panel. | A colon ( : ) separated list. | NULL |
 | REQ_UP   | The UP button in the hall of N'th floor has been pressed. | N | Set (1) or reset (0) |
 | REQ_DOWN | The DOWN button in the hall of N'th floor has been pressed. | N | Set (1) or reset (0) |
-| OPENING  | The door of this car is opening. | N, generally it and the floor field are the same. | NULL |
-| OPENED   | The door of this car has been fully opened. | N, generally it and the floor field are the same. | NULL |
-| CLOSING  | The door of this car is closing. | N, generally it and the floor field are the same. | NULL |
-| CLOSED   | The door of this car has been fully closed. | N, generally it and the floor field are the same. | NULL |
-| LEAVING  | The car is leaving N'th floor.  | N | NULL |
-| ARRIVING | The car is arriving N'th floor. | N | NULL |
+| OPENING  | The door of this car is opening. | NULL | NULL |
+| OPENED   | The door of this car has been fully opened. | NULL | NULL |
+| CLOSING  | The door of this car is closing. | NULL | NULL |
+| CLOSED   | The door of this car has been fully closed. | NULL | NULL |
+| ARRIVING | The car is arriving N'th floor. | NULL | NULL |
 | WEIGHT   | The loading of this car in percent. The rated full load is 1350 kg. | Percentage (e.g. 40) | NULL |
 | REQ_OPEN | The 'OPEN' button on the car panel is pressed. | Set (1) or reset (0) | NULL |
 | STOP_SRV | The car is out of service. | Set (1) or reset (0) | NULL |
