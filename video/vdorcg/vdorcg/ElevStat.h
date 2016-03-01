@@ -82,12 +82,12 @@ public:
 	int SetAnchor(int x, int y);
 	int	SetNumFloors(int n, int highest);
 	int SetType(int	in_type);
-	int	RecogStat(cv::Mat	frame, time_t ts);
+	int	RecogStat(cv::Mat	frame, double ts);
 	int	Show(ElevStat *other, std::ostream &outfile);
 	FloorStat *GetFS(int i);
 
 	std::string	name;
-	time_t	ts;
+	double	ts;
 	int		type; // type I is for general car (elevator). type II is for car group.
 	int		wh_floor;
 	int		weight_percent;

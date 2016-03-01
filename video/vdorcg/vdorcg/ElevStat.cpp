@@ -183,7 +183,7 @@ int ElevStat::SetNumFloors(int n, int highest) {
 	return 0;
 }
 
-int	ElevStat::RecogStat(cv::Mat frame, time_t ts_out){
+int	ElevStat::RecogStat(cv::Mat frame, double ts_out){
 	ts = ts_out;
 	int	verify_result;
 	if (type == TYPE_GENERAL_CAR) {
@@ -265,7 +265,8 @@ int	ElevStat::WriteRow(std::ostream &outfile, std::string event, std::string par
 	if (up_down == NA_CODE) {
 		dir = std::string("NA");
 	}
-	outfile << name << "," << ts << "," << floor << "," << dir << "," << event << "," << param1 << "," << param2 << endl; 
+	outfile << std::fixed;
+	outfile << name << "," << std::setprecision(2) << ts << "," << floor << "," << dir << "," << event << "," << param1 << "," << param2 << endl; 
 	return 0;
 }
 

@@ -38,7 +38,7 @@ ElevStat *ElevSetStat::GetEGS(int idx) {
 	return elevgs_stat.at(idx);
 }
 
-int ElevSetStat::RecogStat(cv::Mat frame, time_t ts) {
+int ElevSetStat::RecogStat(cv::Mat frame, double ts) {
 	int	result;
 	for (int i = 0; i < (int) elevs_stat.size(); i ++) {
 		result = elevs_stat.at(i)->RecogStat(frame, ts);

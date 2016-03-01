@@ -108,8 +108,9 @@ int DetectEvents(struct FileList &in_list) {
 		Mat diff;
 		int num_nonzeros = 0; 
 		bool is_event = false;
-		time_t	curr_ts = in_list.timestamp + ((time_t) cap.get(CAP_PROP_POS_MSEC))/1000;
-		struct tm *curr_tm = std::localtime(&curr_ts);
+		double	curr_ts = ((double)in_list.timestamp) + cap.get(CAP_PROP_POS_MSEC)/1000;
+		time_t  curr_ts_timet = (time_t) curr_ts;
+		struct tm *curr_tm = std::localtime(&curr_ts_timet);
 
 		if ((num_frames != 0) && IsPanX1(curr_frame)) {
 #if 0
@@ -168,7 +169,7 @@ int DetectEvents(struct FileList &in_list) {
 			}
 		} else if (num_frames == 0) {
 			// Assumption: the first frame must be on the panel we are interested in. 
-			prev_es->RecogStat(curr_frame, (time_t)cap.get(CAP_PROP_POS_MSEC));
+			prev_es->RecogStat(curr_frame, curr_ts);
 		}
 
 		if (IsPanX1(curr_frame)) {
