@@ -4,7 +4,16 @@ Analyze the cityhall-elevators efficiency by the video of the control panel
 ## vdorcg
 An application recognizes the details and status of the elevator system of the city-hall by OpenCV and Tesseract-OCR. It will output events in CSV files which are divided into pieces by day automatically. 
 ### Input
-Merely a list of files with time stamps (sum of this two number, since UNIX Epoch) as their files. Must be listed chronically. 
+Video clips which are the snapshots of the cityhalll elevators control panel. 
+![image of the control panel](https://raw.githubusercontent.com/cchuang/cityhall-elevator-survey/master/video/sample.jpg)
+
+### Usage 
+```
+Usage: D:\cityhall-elevator-survey\video\vdorcg\Release\vdorcg.exe <target file list>
+        OpenCV 3.0.0
+        Tesseract-OCR 3.05.00dev
+```
+"target file list" is a list of files with time stamps (sum of this two number, since UNIX Epoch) as their filenames. Must be listed chronically. 
 ```
 D:\cityhall-elevator-survey\video\chunks\1451444819_00000000.mp4
 D:\cityhall-elevator-survey\video\chunks\1451444819_00007200.mp4
@@ -38,14 +47,14 @@ NC6,1451444819,5,1,ARRIVING,5,
 The timestamp (seconds since UNIX Epoch 1970-01-01) of this event. 
 
 #### floor
-The current position of this car. 1st floor is 1, 2nd floor is 2, B1 is -1 and so on. 
+The current position of this car. The 1st floor is 1; the 2nd floor is 2; B1 is -1 and so on. 
 
 #### direction
 |Direction|Description|
 |---------|-----------|
 |1        |The car is going up.|
 |-1       |The car is going down.|
-|0        |The car will stay here till a new request is arrival.|
+|0        |The car will stay here till a new request is triggered.|
 
 #### Events, Para, Para2
 | Event    | Description | Parameter 1 | Parameter 2 |
