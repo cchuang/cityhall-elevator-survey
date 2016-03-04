@@ -15,6 +15,7 @@
 #include <opencv2/imgproc.hpp>
 #include "ElevStat.h"
 #include "ElevSetStat.h"
+#include <tesseract/baseapi.h>
 
 using namespace cv;	
 using namespace std;
