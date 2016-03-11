@@ -28,7 +28,7 @@ class FloorStat {
 	// height ~ 264/14 ~ 18.85
 public: 
 	FloorStat() {};
-	FloorStat(int x, int y);
+	FloorStat(int x, int y) : anchor(x, y) {}
 
 	int	SetAnchor(int x, int y);
 	int	RecogStat(cv::Mat	frame);

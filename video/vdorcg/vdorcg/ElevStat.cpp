@@ -59,8 +59,7 @@ ElevStat::ElevStat(int x, int y, int num_floors, int highest) {
 }
 
 
-ElevStat::ElevStat(cv::Point ac, int num_floors, int highest) {
-	SetAnchor(ac.x, ac.y);
+ElevStat::ElevStat(cv::Point ac, int num_floors, int highest) : anchor(ac) {
 	SetNumFloors(num_floors, highest);
 	if (g_ocr == NULL) {
 		GenericVector<STRING>	*vars_vec = new GenericVector<STRING>();

@@ -16,10 +16,6 @@ using namespace cv;
 #define COLOR_GRAY  -1
 #define COLOR_BIAS_FACTOR  0.04
 
-FloorStat::FloorStat(int x, int y) {
-	SetAnchor(x, y);
-}
-
 int	FloorStat::SetAnchor(int x, int y) {
 	anchor = cv::Point(x, y);
 	return 0;
