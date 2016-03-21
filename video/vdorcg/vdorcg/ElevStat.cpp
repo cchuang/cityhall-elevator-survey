@@ -282,7 +282,7 @@ int	ElevStat::Show(ElevStat *other, std::ostream &outfile) {
 			}
 			if (me->req_down != he->req_down) {
 				result ++;
-				WriteRow(outfile, "REQ_DOWN", me->floor, me->req_up);
+				WriteRow(outfile, "REQ_DOWN", me->floor, me->req_down);
 			}
 		}
 
