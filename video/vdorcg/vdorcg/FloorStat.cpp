@@ -3,8 +3,13 @@
 #include <stdio.h>
 #include <iomanip>
 #include <string>
+#ifdef __GNUC__
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#else
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp>
+#endif
 
 using namespace std;
 using namespace cv;

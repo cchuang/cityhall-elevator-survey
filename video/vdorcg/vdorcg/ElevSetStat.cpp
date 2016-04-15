@@ -1,7 +1,11 @@
 #include "ElevSetStat.h"
 #include "ElevStat.h"
 #include <vector>
+#ifdef __GNUC__
+#include <opencv2/core/core.hpp>
+#else
 #include <opencv2/core.hpp>
+#endif
 
 using namespace std;
 

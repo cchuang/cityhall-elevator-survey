@@ -3,7 +3,11 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#ifdef __GNUC__
+#include <opencv2/core/core.hpp>
+#else
 #include <opencv2/core.hpp>
+#endif
 
 #define ERR_CODE	-9999
 #define NA_CODE		-9998

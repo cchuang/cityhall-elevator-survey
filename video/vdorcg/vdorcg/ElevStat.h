@@ -3,7 +3,11 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#ifdef __GNUC__
+#include <opencv2/core/core.hpp>
+#else
 #include <opencv2/core.hpp>
+#endif
 #include "FloorStat.h"
 
 const cv::Point trans_floor_box(0, 259);

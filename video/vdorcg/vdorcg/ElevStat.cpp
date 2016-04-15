@@ -3,9 +3,18 @@
 #include <stdio.h>
 #include <iomanip>
 #include <string>
+#ifdef __GNUC__
+#include <opencv2/core/core.hpp>
+#include <opencv2/core/core_c.h>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#define REDUCE_AVG	CV_REDUCE_AVG
+#define REDUCE_SUM	CV_REDUCE_SUM
+#else
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
+#endif
 #include <tesseract/baseapi.h>
 #include <tesseract/genericvector.h>
 

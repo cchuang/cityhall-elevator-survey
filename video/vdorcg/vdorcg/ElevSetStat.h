@@ -2,7 +2,11 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#ifdef __GNUC__
+#include <opencv2/core/core.hpp>
+#else
 #include <opencv2/core.hpp>
+#endif
 #include "ElevStat.h"
 
 class ElevSetStat

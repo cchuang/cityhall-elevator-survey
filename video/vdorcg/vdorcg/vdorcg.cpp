@@ -7,12 +7,19 @@
 #include <vector>
 #include <ctime>
 #include <string>
-//#include <opencv/cv.h>
-//#include <opencv/highgui.h>
+#ifdef __GNUC__
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/video/video.hpp>
+#define CAP_PROP_POS_MSEC	CV_CAP_PROP_POS_MSEC
+#define TESSERACT_VERSION_STR "3.03.02-3"
+#else
 #include <opencv2/videoio.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#endif
 #include "ElevStat.h"
 #include "ElevSetStat.h"
 #include <tesseract/baseapi.h>
