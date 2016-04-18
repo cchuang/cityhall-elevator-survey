@@ -76,7 +76,7 @@ ElevStat::ElevStat(cv::Point ac, int num_floors, int highest) : anchor(ac) {
 		vars_vec->push_back("tessedit_char_whitelist");
 		vars_values->push_back("0123456789BCNS-");
 		g_ocr = new tesseract::TessBaseAPI();
-		g_ocr->Init(NULL, "eng", tesseract::OEM_DEFAULT, NULL, NULL, vars_vec, vars_values, false);
+		g_ocr->Init(NULL, "eng", tesseract::OEM_DEFAULT, NULL, 0, vars_vec, vars_values, false);
 		delete vars_vec;
 		delete vars_values;
 		//std::cout << g_ocr->Version() << endl;
@@ -264,6 +264,10 @@ int	ElevStat::Show(ElevStat *other, std::ostream &outfile) {
 		if (weight_percent != other->weight_percent) {
 			result ++;
 			WriteRow(outfile, "WEIGHT", weight_percent);
+		}
+		if (up_down != other->up_down) {
+			result ++;
+			WriteRow(outfile, "CHG_DIR", std::to_string(up_down));
 		}
 		if (req_open != other->req_open) {
 			result ++;

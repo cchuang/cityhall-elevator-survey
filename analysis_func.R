@@ -81,8 +81,8 @@ MergeCarChEvents <- function(x) {
 
 CountTimeDuration <- function(x, out.data=data.frame()) {
 	# sorting
-	x <- x[ with(x, order(Time)), ]
-	if (x$Val[1] != 1) {
+	x <- x[ with(x, order(time)), ]
+	if (x$para2[1] != 1) {
 		x <- x[-1,]
 	}
 	if (nrow(x) %% 2 == 1) {
@@ -96,10 +96,12 @@ CountTimeDuration <- function(x, out.data=data.frame()) {
 	x.even <- x[seq(2, nrow(x), 2),]
 	# Odd rows of x
 	x.odd <- x[seq(1, nrow(x), 2),]
-	browser("The events are NOT arranged as 1 0 1 0...", expr=(x.even$Val!=0 || x.odd$Val!=1))
+	browser("The events are NOT arranged as 1 0 1 0...", expr=(x.even$para2!=0 || x.odd$para2!=1))
 
-	x.odd$Duration <- x.even$Time - x.odd$Time
-	x.odd$Val <- NULL
+	x.odd$Duration <- x.even$time - x.odd$time
+	x.odd$para2 <- NULL
+	x.odd$floor <- NULL
+	x.odd$direction <- NULL
 	eval(substitute(out.data<-rbind(out.data, data.frame(x.odd))), envir=.GlobalEnv)
 	return(nrow(x.odd))
 }

@@ -68,6 +68,7 @@ The current position of this car. The 1st floor is 1; the 2nd floor is 2; B1 is 
 | CLOSED   | The door of this car has been fully closed. | NULL | NULL |
 | ARRIVING | The car is arriving N'th floor. | NULL | NULL |
 | WEIGHT   | The loading of this car in percent. The rated full load is 1350 kg. | Percentage (e.g. 40) | NULL |
+| CHG_DIR  | The moving direction of this elevator has been changed. | The last direction | NULL |
 | REQ_OPEN | The 'OPEN' button on the car panel is pressed. | Set (1) or reset (0) | NULL |
 | STOP_SRV | The car is out of service. | Set (1) or reset (0) | NULL |
 | UNKNOWN_MOVING | The car's status is unknown. | N | NULL |

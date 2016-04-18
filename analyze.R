@@ -19,33 +19,19 @@ source("analysis_func.R")
 # Global Variables
 cpt.data <- data.frame()
 
-#target.time1 <- 1451444819
-#target.time2 <- 0
-target.time1 <- 1452052326
-target.time2 <- 86400
-#target.time2 <- 14400
-target.time <- as.POSIXct(target.time1 + target.time2, origin="1970-01-01")
-
 # Load data
-if (!exists("orig.data")) {
-	orig.data <- read.csv(sprintf("data/%d_%08d.csv", target.time1, target.time2), header = FALSE, skip=1, stringsAsFactors=FALSE)
-	names(orig.data) <- c("Car", "Time", "Fl", "Event", "Val")
-	# The panel is changed at this time. 
-	if ((target.time1 + target.time2) ==  1451444819) {
-		orig.data <- subset(orig.data, (Time < 2816410 | Time > 2816510))
-	}
-}
+out.list <- read.csv("out_list.txt", header=FALSE, stringsAsFactors=FALSE)
+l <- lapply(out.list[[1]], read.csv, stringsAsFactors=FALSE)
+orig.data <- do.call("rbind", l)
 
-nrow.data <- ddply(orig.data, .(Car, Fl, Event), RmTvEntries, start_time=target.time1 + target.time2)
-
-#RmTvEntries(subset(orig.data, Event=="REQUP" & Fl==1 & Car=="NC1"))
-# cpt.data <- cpt.data[with(cpt.data, order(Time)),]
+orig.data$time <- as.POSIXct(orig.data$time, origin="1970-01-01")
 
 ###########################################################
 # Waiting Time
 wt.data <- data.frame()
-ddply(cpt.data, .(Car, Fl, Event), CountTimeDuration, out.data=wt.data)
-
+d_ply(subset(orig.data, id %in% c("NC1-3", "NC4-5", "NC6~") & event %in% c("REQ_UP", "REQ_DOWN")), .(id, para, event), CountTimeDuration, out.data=wt.data)
+wt.data <- wt.data[ with(wt.data, order(time)), ]
+stop("debugging")
 wt.data <- within(wt.data, { 
 	Duration <- as.numeric(Duration)
 	Fl <- as.factor(Fl)

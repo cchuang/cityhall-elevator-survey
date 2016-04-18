@@ -12,7 +12,7 @@ $(TARGET): $(OBJS)
 	$(CXX) -o $@ $^ $(LDFLAGS) 
 
 %.o : %.cpp 
-	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 debug:
 	#@$(MSBUILD) $(SOLUTION) /v:q /p:Configuration=Debug /p:Platform=$(PLATFORM) /maxcpucount:6 
