@@ -267,7 +267,7 @@ int	ElevStat::Show(ElevStat *other, std::ostream &outfile) {
 		}
 		if (up_down != other->up_down) {
 			result ++;
-			WriteRow(outfile, "CHG_DIR", std::to_string(up_down));
+			WriteRow(outfile, "CHG_DIR", std::to_string(other->up_down));
 		}
 		if (req_open != other->req_open) {
 			result ++;
